@@ -22,7 +22,9 @@
               <div class="avatar">
                 <img src="/public/images/img.png" alt="" />
               </div>
-              <button class="edit-btn">编辑个人资料</button>
+              <div class="edit-btn-wrapper">
+                <button class="edit-btn">编辑个人资料</button>
+              </div>
             </div>
             <div class="display-name">{{ userName }}</div>
             <div class="handle">@{{ userId }}</div>
@@ -92,7 +94,7 @@ const following = ref(0)
 const followers = ref(0)
 const postCount = ref(0)
 
-const tab_list = ref(['帖子', '回复', '媒体', '喜欢'])
+const tab_list = ref(['帖子', '回复', '亮点', '文章', '媒体', '喜欢'])
 
 const tweets = ref<Tweet[]>([])
 
@@ -169,32 +171,35 @@ main {
   object-fit: cover;
 }
 .profile-info {
-  padding: 0 16px;
+  position: relative;
+  padding: 12px 16px;
 }
 .avatar-row {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-top: -40px;
+  justify-content: flex-end;
+  height: 65px;
   margin-bottom: 12px;
 }
 .avatar {
-  width: 80px;
-  height: 80px;
+  position: absolute;
+  top: -65px;
+  left: 16px;
+  width: 130px;
+  height: 130px;
   border-radius: 50%;
   border: 4px solid #fff;
   overflow: hidden;
   background: #fff;
 }
 .avatar img {
-  width: 100%;
-  height: 100%;
+  width: 130px;
+  height: 130px;
   object-fit: cover;
 }
 .edit-btn {
   height: 34px;
   padding: 0 16px;
-  margin-top: 44px;
+  align-self: flex-end;
   border-radius: 17px;
   border: var(--boundary-style);
   font-size: 14px;
