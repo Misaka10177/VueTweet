@@ -51,6 +51,9 @@
         <div class="tweet_list">
           <TweetShow v-for="(tweet, index) in tweets" :key="index" :tweet="tweet"></TweetShow>
         </div>
+        <div class="recommend-section">
+          <RecommendFollowing></RecommendFollowing>
+        </div>
       </main>
     </div>
     <div class="side_bar">
@@ -259,6 +262,9 @@ main {
 }
 .tab {
   height: 53px;
+}
+.tweet_list {
+  min-height: 24px;
 }
 
 .side_bar {
