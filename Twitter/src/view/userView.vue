@@ -15,7 +15,7 @@
         </div>
         <div class="profile">
           <div class="cover">
-            <img src="/public/images/img.png" alt="" />
+            <img src="/public/images/64495434_p0.jpg" alt="" />
           </div>
           <div class="profile-info">
             <div class="avatar-row">
@@ -215,7 +215,7 @@ main {
 .display-name {
   font-size: 20px;
   font-weight: 700;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 .handle {
   font-size: 15px;
