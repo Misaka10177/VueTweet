@@ -1,12 +1,14 @@
 <template>
-  <div class="tab">
-    <TabControl :tab_list="tab_list" @tab-click="tab_click"></TabControl>
-  </div>
-  <div class="send_tweet"></div>
-  <div class="tweet_list">
-    <div class="update_tweet">显示 333 帖子</div>
-    <div class="tweets">
-      <TweetShow v-for="(tweet, index) in tweet_list" :key="index" :tweet="tweet"></TweetShow>
+  <div id="home_main">
+    <div class="tab">
+      <TabControl :tab_list="tab_list" @tab-click="tab_click"></TabControl>
+    </div>
+    <div class="send_tweet"></div>
+    <div class="tweet_list">
+      <div class="update_tweet">显示 333 帖子</div>
+      <div class="tweets">
+        <TweetShow v-for="(tweet, index) in tweet_list" :key="index" :tweet="tweet"></TweetShow>
+      </div>
     </div>
   </div>
 </template>
@@ -23,6 +25,30 @@ import type { Tweet } from '@/types'
 
 const tab_list = ref(['为你推荐', '正在关注'])
 
+// const tweet_list = ref<Tweet[]>([
+//   {
+//     id: '1',
+//     text: '楽しかった！！！！</br>アンヴィル…………',
+//     images: '/public/images/92162034_p3.png',
+//     interaction: {
+//       reply: 222,
+//       transpond: 333,
+//       upvote: 444,
+//       view: 999,
+//     },
+//   },
+//   {
+//     id: '2',
+//     text: '楽しかった！！！！</br>アンヴィル…………',
+//     images: '/public/images/92162034_p3.png',
+//     interaction: {
+//       reply: 777,
+//       transpond: 888,
+//       upvote: 333,
+//       view: 80,
+//     },
+//   },
+// ])
 const tweet_list = ref<Tweet[]>([])
 
 const tweetStore = useTweetStore()
