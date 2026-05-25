@@ -208,6 +208,7 @@ main {
   background: #fff;
   cursor: pointer;
   transition: background 0.2s;
+  border-color: rgba(0, 0, 0, 0.1);
 }
 .edit-btn:hover {
   background: rgba(15, 20, 25, 0.06);
