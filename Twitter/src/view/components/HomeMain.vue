@@ -25,40 +25,43 @@ import type { Tweet } from '@/types'
 
 const tab_list = ref(['为你推荐', '正在关注'])
 
-// const tweet_list = ref<Tweet[]>([
-//   {
-//     id: '1',
-//     text: '楽しかった！！！！</br>アンヴィル…………',
-//     images: '/public/images/92162034_p3.png',
-//     interaction: {
-//       reply: 222,
-//       transpond: 333,
-//       upvote: 444,
-//       view: 999,
-//     },
-//   },
-//   {
-//     id: '2',
-//     text: '楽しかった！！！！</br>アンヴィル…………',
-//     images: '/public/images/92162034_p3.png',
-//     interaction: {
-//       reply: 777,
-//       transpond: 888,
-//       upvote: 333,
-//       view: 80,
-//     },
-//   },
-// ])
 const tweet_list = ref<Tweet[]>([])
 
 const tweetStore = useTweetStore()
 if (tweetStore.tweets.length) {
   tweet_list.value = tweetStore.tweets
 } else {
-  getTweetList().then((res: Tweet[]) => {
-    tweet_list.value = res
-    tweetStore.setTweets(res)
-  })
+  getTweetList()
+    .then((res: Tweet[]) => {
+      tweet_list.value = res
+      tweetStore.setTweets(res)
+    })
+    .catch((err) => {
+      tweet_list.value = [
+        {
+          id: '1',
+          text: '楽しかった！！！！</br>アンヴィル…………',
+          images: '/public/images/92162034_p3.png',
+          interaction: {
+            reply: 222,
+            transpond: 333,
+            upvote: 444,
+            view: 999,
+          },
+        },
+        {
+          id: '2',
+          text: '楽しかった！！！！</br>アンヴィル…………',
+          images: '/public/images/92162034_p3.png',
+          interaction: {
+            reply: 777,
+            transpond: 888,
+            upvote: 333,
+            view: 80,
+          },
+        },
+      ]
+    })
 }
 
 function tab_click(tab: string) {
