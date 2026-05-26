@@ -4,7 +4,7 @@
       <main>
         <div class="left-panel">
           <div class="panel-top">
-            <div class="title">私信</div>
+            <div class="title">聊天</div>
             <button class="new-msg-btn">
               <svg viewBox="0 0 24 24">
                 <g><path :d="icon_new_message"></path></g>
