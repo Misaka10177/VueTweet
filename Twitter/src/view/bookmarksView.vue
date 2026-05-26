@@ -3,20 +3,24 @@
     <div class="page_main">
       <main>
         <div class="top">
-          <div class="header">
-            <div class="title">书签</div>
-            <div class="subtitle">@{{ userId }}</div>
-          </div>
-          <div class="icon">
+          <div class="back" @click="$router.back()">
             <svg viewBox="0 0 24 24">
-              <g><path :d="icon_more"></path></g>
+              <g><path :d="icon_back"></path></g>
             </svg>
           </div>
+          <div class="header">
+            <div class="title">书签</div>
+          </div>
+        </div>
+        <div class="search">
+          <SearchBar></SearchBar>
         </div>
         <div class="bookmark_list">
           <div class="empty" v-if="bookmarks.length === 0">
             <div class="empty-title">还没有保存任何书签</div>
-            <div class="empty-subtitle">点击帖子上方的分享图标，再选择"添加书签"即可在此处保存。</div>
+            <div class="empty-subtitle">
+              点击帖子上方的分享图标，再选择"添加书签"即可在此处保存。
+            </div>
           </div>
           <div class="tweets" v-else>
             <TweetShow v-for="(tweet, index) in bookmarks" :key="index" :tweet="tweet"></TweetShow>
@@ -41,19 +45,20 @@ import SearchBar from './components/SideBar/SideBarComponents/SearchBar.vue'
 import SubscribePremium from './components/SideBar/SideBarComponents/SubscribePremium.vue'
 import RecommendFollowing from './components/SideBar/SideBarComponents/RecommendFollowing.vue'
 import NavigationBar from './components/SideBar/SideBarComponents/NavigationBar.vue'
-import { getuserInfo } from '@/request/api.js'
 import type { Tweet } from '@/types'
 
-const icon_more = ref(
-  'M3 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm7 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z',
+const icon_back = ref(
+  'M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z',
 )
 
-const userId = ref('')
-getuserInfo().then((res) => {
-  userId.value = res.userId
-})
-
-const bookmarks = ref<Tweet[]>([])
+const bookmarks = ref<Tweet[]>([
+  {
+    id: '1',
+    text: '楽しかった！！！！\nアンヴィル…………',
+    images: '/public/images/92162034_p3.png',
+    interaction: { reply: 222, transpond: 333, upvote: 444, view: 999 },
+  },
+])
 </script>
 <style scoped>
 #bookmarks {
@@ -77,8 +82,25 @@ main {
   height: 53px;
   padding: 0 16px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+}
+.back {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.back:hover {
+  background: rgba(15, 20, 25, 0.08);
+}
+.back svg {
+  width: 20px;
+  height: 20px;
 }
 .header {
   display: flex;
@@ -88,17 +110,8 @@ main {
   font-size: 20px;
   font-weight: 700;
 }
-.subtitle {
-  font-size: 13px;
-  color: var(--grey-color);
-}
-.icon {
-  display: flex;
-  align-items: center;
-}
-svg {
-  width: 20px;
-  height: 20px;
+.search {
+  padding: 8px 16px;
 }
 .empty {
   padding: 40px 32px;
