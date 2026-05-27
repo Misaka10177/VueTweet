@@ -13,7 +13,7 @@
     </div>
     <div class="box">
       <div class="profile_photo">
-        <img src="/images/img.png" alt="" />
+        <img :src="`${base}images/img.png`" alt="" />
       </div>
       <div class="container">
         <div class="auther_name">
@@ -79,6 +79,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Tweet } from '@/types'
+const base = import.meta.env.BASE_URL
 const prop = defineProps<{ tweet: Tweet }>()
 const tweet = ref<Tweet>(prop.tweet)
 

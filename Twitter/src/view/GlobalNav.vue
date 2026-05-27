@@ -40,7 +40,7 @@
     </div>
     <div class="user" @click="click_user">
       <div class="profile_photo">
-        <img src="/images/img.png" alt="" />
+        <img :src="`${base}images/img.png`" alt="" />
       </div>
       <div class="info">
         <div class="name">{{ username }}</div>
@@ -65,6 +65,7 @@ import { ref } from 'vue'
 import { getuserInfo, logout } from '@/request/api.js'
 import router from '@/router'
 
+const base = import.meta.env.BASE_URL
 const logo_x = ref(
   'M21.742 21.75l-7.563-11.179 7.056-8.321h-2.456l-5.691 6.714-4.54-6.714H2.359l7.29 10.776L2.25 21.75h2.456l6.035-7.118 4.818 7.118h6.191-.008zM7.739 3.818L18.81 20.182h-2.447L5.29 3.818h2.447z',
 )

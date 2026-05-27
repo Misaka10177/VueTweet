@@ -15,12 +15,12 @@
         </div>
         <div class="profile">
           <div class="cover">
-            <img src="/images/64495434_p0.jpg" alt="" />
+            <img :src="`${base}images/64495434_p0.jpg`" alt="" />
           </div>
           <div class="profile-info">
             <div class="avatar-row">
               <div class="avatar">
-                <img src="/images/img.png" alt="" />
+                <img :src="`${base}images/img.png`" alt="" />
               </div>
               <div class="edit-btn-wrapper">
                 <button class="edit-btn">编辑个人资料</button>
@@ -77,6 +77,7 @@ import NavigationBar from './components/SideBar/SideBarComponents/NavigationBar.
 import { getuserInfo } from '@/request/api.js'
 import type { Tweet } from '@/types'
 
+const base = import.meta.env.BASE_URL
 const icon_back = ref(
   'M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z',
 )
