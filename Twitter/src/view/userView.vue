@@ -15,12 +15,12 @@
         </div>
         <div class="profile">
           <div class="cover">
-            <img src="/public/images/64495434_p0.jpg" alt="" />
+            <img src="/images/64495434_p0.jpg" alt="" />
           </div>
           <div class="profile-info">
             <div class="avatar-row">
               <div class="avatar">
-                <img src="/public/images/img.png" alt="" />
+                <img src="/images/img.png" alt="" />
               </div>
               <div class="edit-btn-wrapper">
                 <button class="edit-btn">编辑个人资料</button>

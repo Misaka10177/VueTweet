@@ -40,7 +40,7 @@
     </div>
     <div class="user" @click="click_user">
       <div class="profile_photo">
-        <img src="/public/images/img.png" alt="" />
+        <img src="/images/img.png" alt="" />
       </div>
       <div class="info">
         <div class="name">{{ username }}</div>

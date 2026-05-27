@@ -13,7 +13,7 @@
     </div>
     <div class="box">
       <div class="profile_photo">
-        <img src="/public/images/img.png" alt="" />
+        <img src="/images/img.png" alt="" />
       </div>
       <div class="container">
         <div class="auther_name">

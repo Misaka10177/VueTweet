@@ -13,7 +13,7 @@ import LoginView from '@/view/LoginView.vue'
 
 const router = createRouter({
   // history: createWebHistory(import.meta.env.BASE_URL),
-  history: createWebHistory(),
+  history: createWebHistory('/VueTweet/'),
   routes: [
     {
       path: '/join',

@@ -29,12 +29,12 @@ const user_list = ref([
   {
     id: 'Misaka',
     name: 'Misaka Mikoto',
-    picture: '../../public/images/img.png',
+    picture: '/images/img.png',
   },
   {
     id: 'oO0Eve0Oo',
     name: 'Eve',
-    picture: '../../public/images/img.png',
+    picture: '/images/img.png',
   },
 ])
 </script>

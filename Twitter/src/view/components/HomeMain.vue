@@ -41,7 +41,7 @@ if (tweetStore.tweets.length) {
         {
           id: '1',
           text: '楽しかった！！！！</br>アンヴィル…………',
-          images: '/public/images/92162034_p3.png',
+          images: '/images/92162034_p3.png',
           interaction: {
             reply: 222,
             transpond: 333,
@@ -52,7 +52,18 @@ if (tweetStore.tweets.length) {
         {
           id: '2',
           text: '楽しかった！！！！</br>アンヴィル…………',
-          images: '/public/images/92162034_p3.png',
+          images: '/images/92162034_p3.png',
+          interaction: {
+            reply: 777,
+            transpond: 888,
+            upvote: 333,
+            view: 80,
+          },
+        },
+        {
+          id: '2',
+          text: '楽しかった！！！！</br>アンヴィル…………',
+          images: '/images/92162034_p3.png',
           interaction: {
             reply: 777,
             transpond: 888,

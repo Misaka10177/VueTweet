@@ -55,7 +55,7 @@ const bookmarks = ref<Tweet[]>([
   {
     id: '1',
     text: '楽しかった！！！！\nアンヴィル…………',
-    images: '/public/images/92162034_p3.png',
+    images: '/images/92162034_p3.png',
     interaction: { reply: 222, transpond: 333, upvote: 444, view: 999 },
   },
 ])
