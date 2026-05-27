@@ -29,7 +29,7 @@ const mockResponses = {
     {
       id: '2',
       text: '今日もいい天気ですね〜',
-      images: base + 'images/64495434_p0.jpg',
+      images: base + 'images/96919363_p0.jpg',
       interaction: { reply: 55, transpond: 120, upvote: 310, view: 500 },
     },
     {
