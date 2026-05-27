@@ -9,7 +9,7 @@
       <div>
         <SearchBar></SearchBar>
         <SubscribePremium></SubscribePremium>
-        <Trendbar></Trendbar>
+        <TrendBar></TrendBar>
         <RecommendFollowing></RecommendFollowing>
         <NavigationBar></NavigationBar>
       </div>
@@ -22,7 +22,7 @@ import { ref } from 'vue'
 import HomeMain from './components/HomeMain.vue'
 import SearchBar from './components/SideBar/SideBarComponents/SearchBar.vue'
 import SubscribePremium from './components/SideBar/SideBarComponents/SubscribePremium.vue'
-import Trendbar from './components/SideBar/SideBarComponents/Trendbar.vue'
+import TrendBar from './components/SideBar/SideBarComponents/TrendBar.vue'
 import RecommendFollowing from './components/SideBar/SideBarComponents/RecommendFollowing.vue'
 import NavigationBar from './components/SideBar/SideBarComponents/NavigationBar.vue'
 </script>

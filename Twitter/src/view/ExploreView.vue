@@ -13,7 +13,7 @@
         <div class="tab">
           <TabControl :tab_list="tab_list" @tab-click="tab_click"></TabControl>
         </div>
-        <Trendbar :showTitle="false"></Trendbar>
+        <TrendBar :showTitle="false"></TrendBar>
       </main>
     </div>
     <div class="side_bar">
@@ -31,7 +31,7 @@ import { useRoute } from 'vue-router'
 
 import TabControl from './components/TabControl.vue'
 import SearchBar from './components/SideBar/SideBarComponents/SearchBar.vue'
-import Trendbar from './components/SideBar/SideBarComponents/Trendbar.vue'
+import TrendBar from './components/SideBar/SideBarComponents/TrendBar.vue'
 
 // sidebar components
 import SubscribePremium from './components/SideBar/SideBarComponents/SubscribePremium.vue'
