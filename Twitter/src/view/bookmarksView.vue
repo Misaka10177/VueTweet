@@ -51,11 +51,12 @@ const icon_back = ref(
   'M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z',
 )
 
+const base = import.meta.env.BASE_URL
 const bookmarks = ref<Tweet[]>([
   {
     id: '1',
     text: '楽しかった！！！！\nアンヴィル…………',
-    images: '/images/92162034_p3.png',
+    images: base + 'images/92162034_p3.png',
     interaction: { reply: 222, transpond: 333, upvote: 444, view: 999 },
   },
 ])
