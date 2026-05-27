@@ -13,7 +13,6 @@
         <div class="tab">
           <TabControl :tab_list="tab_list" @tab-click="tab_click"></TabControl>
         </div>
-        <Trendbar :showTitle="false"></Trendbar>
       </main>
     </div>
     <div class="side_bar">
