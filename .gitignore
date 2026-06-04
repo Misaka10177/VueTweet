@@ -54,6 +54,11 @@ application-dev.yml
 .env.*.local
 *.local
 
+# ===== MCP / Database Config =====
+.mcp.json
+database-config.yaml
+database-config.json
+
 # ===== Coverage / Test =====
 coverage/
 *.tsbuildinfo

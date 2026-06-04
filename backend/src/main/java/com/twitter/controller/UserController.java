@@ -23,9 +23,9 @@ public class UserController {
         List<Map<String, Object>> result = new ArrayList<>();
         for (User u : users) {
             Map<String, Object> map = new LinkedHashMap<>();
-            map.put("id", u.getUserId());
+            map.put("id", u.getId());
             map.put("name", u.getName());
-            map.put("picture", u.getPicture());
+            map.put("profilePhoto", u.getProfilePhoto());
             result.add(map);
         }
         return result;
@@ -35,9 +35,9 @@ public class UserController {
     public Map<String, String> getCurrentUser(HttpServletRequest request) {
         Map<String, String> result = new HashMap<>();
         String userId = (String) request.getAttribute("userId");
-        User user = userRepo.findByUserId(userId);
+        User user = userRepo.findById(userId).orElse(null);
         if (user != null) {
-            result.put("userId", user.getUserId());
+            result.put("userId", user.getId());
             result.put("username", user.getName());
         }
         return result;
@@ -52,7 +52,7 @@ public class UserController {
             result.put("message", "用户名不能为空");
             return result;
         }
-        boolean exists = userRepo.existsByUserId(userName.trim());
+        boolean exists = userRepo.existsById(userName.trim());
         if (exists) {
             result.put("status", "success");
         } else {

@@ -18,10 +18,10 @@
       <div class="container">
         <div class="auther_name">
           <div>
-            <span class="name">赤倉🧸初画集「Ludique」発売中</span>
-            <span class="id">@akakura1341</span>
+            <span class="name">{{ tweet.author.name }}</span>
+            <span class="id">@{{ tweet.author.id }}</span>
             <span class="dot">·</span>
-            <span class="time">7小时</span>
+            <span class="time">{{ tweet.publishTime }}</span>
           </div>
           <div>
             <div class="tweet_more">
