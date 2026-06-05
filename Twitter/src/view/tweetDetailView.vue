@@ -79,20 +79,7 @@
           </div>
           <!-- 回复列表 -->
           <div class="replies" v-if="comments.length">
-            <div class="reply" v-for="(comment, index) in comments" :key="index">
-              <div class="comment-box">
-                <div class="profile_photo">
-                  <img :src="comment.author.profile_photo" alt="" />
-                </div>
-                <div class="comment-content">
-                  <div class="comment-header">
-                    <span class="name">{{ comment.author.name }}</span>
-                    <span class="id">@{{ comment.author.id }}</span>
-                  </div>
-                  <div class="comment-text">{{ comment.text }}</div>
-                </div>
-              </div>
-            </div>
+            <TweetShow v-for="(comment, index) in comments" :key="index" :tweet="comment"></TweetShow>
           </div>
           <div class="no-replies" v-else>
             <div class="empty-text">暂无回复</div>
@@ -117,6 +104,7 @@ import SearchBar from './components/SideBar/SideBarComponents/SearchBar.vue'
 import SubscribePremium from './components/SideBar/SideBarComponents/SubscribePremium.vue'
 import RecommendFollowing from './components/SideBar/SideBarComponents/RecommendFollowing.vue'
 import NavigationBar from './components/SideBar/SideBarComponents/NavigationBar.vue'
+import TweetShow from './components/TweetShow.vue'
 import type { Tweet } from '@/types'
 import { getTweetList } from '@/request/api.js'
 
