@@ -3,8 +3,11 @@ import { get, post, put } from './http';
 // import { useTokenStore } from '@/stores/store';
 
 export const getTweetList = () => get('/tweet');
+export const getTweet = (tweetId) => get(`/tweet/${tweetId}`);
 export const getTrendList = () => get('/trends');
 export const getuserInfo = () => get('/currentUser');
+export const getReplies = (tweetId) => get(`/tweet/${tweetId}/replies`);
+export const addReply = (tweetId, p) => post(`/tweet/${tweetId}/reply`, p);
 
 
 export const checkUser = (p) => post('/checkUser', p);

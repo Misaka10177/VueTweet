@@ -1,7 +1,7 @@
 <template>
-  <div id="tweet">
-    <!-- <div class="repost">
-      <span>
+  <div id="tweet" :class="{ 'is-quoted': isQuoted }">
+    <div class="repost">
+      <!-- <span>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <g>
             <path :d="repost_tweet_icon"></path>
@@ -9,11 +9,14 @@
         </svg>
       </span>
       <span>Misaka 10177</span>
-      <span>已转帖</span>
-    </div> -->
+      <span>已转帖</span> -->
+    </div>
     <div class="box" @click="goDetail">
-      <div class="profile_photo">
-        <img src="/public/images/img.png" alt="" />
+      <div class="avatar-col">
+        <div class="profile_photo">
+          <img src="/public/images/img.png" alt="" />
+        </div>
+        <div v-if="isQuoted" class="thread-line"></div>
       </div>
       <div class="container">
         <div class="auther_name">
@@ -80,7 +83,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Tweet } from '@/types'
-const prop = defineProps<{ tweet: Tweet }>()
+const prop = withDefaults(defineProps<{ tweet: Tweet; isQuoted?: boolean }>(), { isQuoted: false })
 const tweet = ref<Tweet>(prop.tweet)
 const router = useRouter()
 
@@ -152,9 +155,13 @@ function tab_click(tab) {}
   padding: 0 2%;
   border-bottom: var(--boundary-style);
 }
+#tweet.is-quoted {
+  border-bottom: none;
+}
 .repost {
   display: flex;
-  margin-top: 6px;
+  /* margin-top: 6px; */
+  padding: 6px 0;
 }
 .repost span {
   font-size: 12px;
@@ -173,12 +180,23 @@ function tab_click(tab) {}
   fill: var(--grey-color);
 }
 
+.avatar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 8px;
+}
 .profile_photo {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   overflow: hidden;
-  margin-right: 8px;
+}
+.thread-line {
+  width: 2px;
+  flex: 1;
+  background: rgba(207, 217, 222, 1.00);
+  margin-top: 4px;
 }
 .box {
   display: flex;

@@ -11,11 +11,16 @@
           <div class="title">帖子</div>
         </div>
         <div class="detail-content">
+          <!-- 引用原推文 -->
+          <TweetShow v-if="tweet?.replyTo" :tweet="tweet.replyTo" :isQuoted="true"></TweetShow>
           <!-- 主推文 -->
           <div class="main-tweet" v-if="tweet">
             <div class="tweet-header">
-              <div class="profile_photo">
-                <img :src="tweet.author.profile_photo" alt="" />
+              <div class="avatar-col">
+                <div v-if="tweet.replyTo" class="thread-line-top"></div>
+                <div class="profile_photo">
+                  <img :src="tweet.author.profile_photo" alt="" />
+                </div>
               </div>
               <div class="author-info">
                 <div class="name">{{ tweet.author.name }}</div>
@@ -72,13 +77,23 @@
           </div>
           <!-- 回复输入框 -->
           <div class="reply-input">
-            <div class="reply-avatar">
-              <img src="/images/img.png" alt="" />
+            <div class="reply-hint" v-if="replyFocused">
+              回复 <span>@{{ tweet?.author?.id }}</span>
             </div>
-            <input type="text" placeholder="发表你的回复" v-model="replyText" />
-            <button class="reply-btn" @click="submitReply" :disabled="replyText.length === 0">
-              回复
-            </button>
+            <div class="reply-row">
+              <div class="reply-avatar">
+                <img src="/images/img.png" alt="" />
+              </div>
+              <input
+                type="text"
+                placeholder="发表你的回复"
+                v-model="replyText"
+                @focus="replyFocused = true"
+              />
+              <button class="reply-btn" @click="submitReply" :disabled="replyText.length === 0">
+                回复
+              </button>
+            </div>
           </div>
           <!-- 回复列表 -->
           <div class="replies" v-if="comments.length">
@@ -105,20 +120,23 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useUserInfoStore } from '@/stores/store'
 import SearchBar from './components/SideBar/SideBarComponents/SearchBar.vue'
 import SubscribePremium from './components/SideBar/SideBarComponents/SubscribePremium.vue'
 import RecommendFollowing from './components/SideBar/SideBarComponents/RecommendFollowing.vue'
 import NavigationBar from './components/SideBar/SideBarComponents/NavigationBar.vue'
 import TweetShow from './components/TweetShow.vue'
 import type { Tweet } from '@/types'
-import { getTweetList } from '@/request/api.js'
+import { getTweet, getReplies, addReply } from '@/request/api.js'
 
 const route = useRoute()
+const userInfoStore = useUserInfoStore()
 const tweet = ref<Tweet | null>(null)
 const comments = ref<Tweet[]>([])
 const replyText = ref('')
+const replyFocused = ref(false)
 
 const icon_back = ref(
   'M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z',
@@ -162,27 +180,36 @@ function formatTime(time: string) {
 }
 
 function submitReply() {
-  // TODO: API call
-  replyText.value = ''
+  const id = route.params.id as string
+  addReply(id, { userId: userInfoStore.userId, text: replyText.value }).then(() => {
+    replyText.value = ''
+    getReplies(id).then((res: Tweet[]) => {
+      comments.value = res
+    })
+  })
+}
+
+function loadTweet(id: string) {
+  getTweet(id).then((res: Tweet) => {
+    tweet.value = res
+  })
+  getReplies(id).then((res: Tweet[]) => {
+    comments.value = res
+  })
 }
 
 onMounted(() => {
-  const id = route.params.id as string
-  getTweetList().then((res: Tweet[]) => {
-    tweet.value = res.find((t: Tweet) => t.id === id) || null
-  })
-  // 模拟评论数据
-  comments.value = [
-    {
-      id: '1',
-      author: { id: 'Misaka', name: 'Misaka Mikoto', profile_photo: '/images/img.png' },
-      text: 'ddd',
-      images: '',
-      publishTime: '2026-05-24T10:13:42',
-      interaction: { reply: 0, transpond: 0, upvote: 0, view: 0, bookmark: 0 },
-    },
-  ]
+  loadTweet(route.params.id as string)
 })
+
+watch(
+  () => route.params.id,
+  (newId) => {
+    if (newId) {
+      loadTweet(newId as string)
+    }
+  },
+)
 </script>
 <style scoped>
 #tweet-detail {
@@ -231,20 +258,34 @@ main {
   font-size: 20px;
   font-weight: 700;
 }
-.detail-content > div {
-  padding: 12px 2%;
+.main-tweet {
+  padding: 0 2%;
+  position: relative;
 }
 .tweet-header {
   display: flex;
   align-items: center;
   margin-bottom: 12px;
 }
+.tweet-header .avatar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 12px;
+}
+.tweet-header .thread-line-top {
+  width: 2px;
+  height: 8px;
+  background: rgba(207, 217, 222, 1);
+  margin-bottom: 4px;
+  position: absolute;
+  top: 0;
+}
 .tweet-header .profile_photo {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   overflow: hidden;
-  margin-right: 12px;
 }
 .tweet-header img {
   width: 100%;
@@ -352,10 +393,21 @@ main {
   color: var(--theme-color);
 }
 .reply-input {
+  padding: 16px 2%;
+  border-bottom: var(--boundary-style);
+}
+.reply-hint {
+  font-size: 14px;
+  color: var(--grey-color);
+  margin-bottom: 8px;
+  padding-left: 52px;
+}
+.reply-hint span {
+  color: var(--theme-color);
+}
+.reply-row {
   display: flex;
   align-items: center;
-  padding: 16px 0;
-  border-bottom: var(--boundary-style);
   gap: 12px;
 }
 .reply-avatar {
@@ -370,7 +422,7 @@ main {
   height: 100%;
   object-fit: cover;
 }
-.reply-input input {
+.reply-row input {
   flex: 1;
   height: 40px;
   border: none;
@@ -396,7 +448,7 @@ main {
   cursor: default;
 }
 .detail-content .replies {
-  padding: 12px 0;
+  padding: 0;
 }
 .reply {
   border-bottom: var(--boundary-style);

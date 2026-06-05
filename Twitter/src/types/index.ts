@@ -9,6 +9,7 @@ export interface Tweet {
   text: string
   images: string
   publishTime: string
+  replyTo?: Tweet
   interaction: {
     reply: number
     transpond: number
