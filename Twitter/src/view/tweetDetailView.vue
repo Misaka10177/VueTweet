@@ -164,7 +164,7 @@ function submitReply() {
 }
 
 onMounted(() => {
-  const id = route.query.id as string
+  const id = route.params.id as string
   getTweetList().then((res: Tweet[]) => {
     tweet.value = res.find((t: Tweet) => t.id === id) || null
   })

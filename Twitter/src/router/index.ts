@@ -35,7 +35,7 @@ const router = createRouter({
         { path: 'chat', component: chatView },
         { path: 'grok', component: grokView },
         { path: 'bookmarks', component: bookmarksView },
-        { path: 'tweet', component: tweetDetailView },
+        { path: 'tweet/:id', component: tweetDetailView },
         { path: 'user', component: userView },
       ],
     },
