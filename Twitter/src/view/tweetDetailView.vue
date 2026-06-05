@@ -30,7 +30,7 @@
               <div class="meta">
                 <span class="time">{{ formatTime(tweet.publishTime) }}</span>
                 <span class="sep">·</span>
-                <span>{{ tweet.interaction.view }} 查看</span>
+                <span class="view-count">{{ tweet.interaction.view }}</span><span> 查看</span>
               </div>
             </div>
             <div class="tweet-actions">
@@ -51,6 +51,7 @@
                       <g><path :d="icon_bookmark"></path></g>
                     </svg>
                   </span>
+                  <span>{{ tweet.interaction.bookmark || 0 }}</span>
                 </div>
                 <div>
                   <span class="icon">
@@ -175,7 +176,7 @@ onMounted(() => {
       text: 'ddd',
       images: '',
       publishTime: '2026-05-24T10:13:42',
-      interaction: { reply: 0, transpond: 0, upvote: 0, view: 0 },
+      interaction: { reply: 0, transpond: 0, upvote: 0, view: 0, bookmark: 0 },
     },
   ]
 })
@@ -266,9 +267,13 @@ main {
   white-space: pre-wrap;
 }
 .tweet-body .images img {
-  max-width: 70%;
+  max-width: 60%;
   border-radius: 16px;
   margin-bottom: 16px;
+}
+.tweet-body .meta .view-count {
+  color: var(--black-color);
+  font-weight: 700;
 }
 .tweet-body .meta {
   font-size: 14px;

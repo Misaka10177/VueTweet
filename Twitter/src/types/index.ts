@@ -14,6 +14,7 @@ export interface Tweet {
     transpond: number
     upvote: number
     view: number
+    bookmark: number
   }
 }
 export interface Trend {
