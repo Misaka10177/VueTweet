@@ -21,7 +21,7 @@
             <span class="name">{{ tweet.author.name }}</span>
             <span class="id">@{{ tweet.author.id }}</span>
             <span class="dot">·</span>
-            <span class="time">{{ tweet.publishTime }}</span>
+            <span class="time">{{ displayTime }}</span>
           </div>
           <div>
             <div class="tweet_more">
@@ -77,10 +77,28 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { Tweet } from '@/types'
 const prop = defineProps<{ tweet: Tweet }>()
 const tweet = ref<Tweet>(prop.tweet)
+
+const displayTime = computed(() => {
+  if (!tweet.value.publishTime) return ''
+  const now = new Date()
+  const pub = new Date(tweet.value.publishTime)
+  const diff = now.getTime() - pub.getTime()
+  const seconds = Math.floor(diff / 1000)
+  const minutes = Math.floor(seconds / 60)
+  const hours = Math.floor(minutes / 60)
+
+  if (seconds < 60) return '刚刚'
+  if (minutes < 60) return `${minutes}分钟`
+  if (hours < 24) return `${hours}小时`
+  if (pub.getFullYear() === now.getFullYear()) {
+    return `${pub.getMonth() + 1}月${pub.getDate()}日`
+  }
+  return `${pub.getFullYear()}年${pub.getMonth() + 1}月${pub.getDate()}日`
+})
 
 type interactionType = 'reply' | 'transpond' | 'upvote' | 'view'
 const page_tweet_interaction_icon = ref<{ name: interactionType; path: string }[]>([
