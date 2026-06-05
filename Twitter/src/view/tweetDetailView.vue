@@ -271,6 +271,9 @@ main {
   font-size: 14px;
   color: var(--grey-color);
 }
+.tweet-header .tweet_more {
+  align-self: flex-start;
+}
 .tweet-header .tweet_more svg {
   width: 18px;
   height: 18px;
