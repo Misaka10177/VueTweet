@@ -28,7 +28,7 @@
                 <img :src="tweet.images" alt="" />
               </div>
               <div class="meta">
-                <span class="time">{{ tweet.created_at }}</span>
+                <span class="time">{{ formatTime(tweet.publishTime) }}</span>
                 <span class="sep">·</span>
                 <span>{{ tweet.interaction.view }} 查看</span>
               </div>
@@ -105,7 +105,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import SearchBar from './components/SideBar/SideBarComponents/SearchBar.vue'
 import SubscribePremium from './components/SideBar/SideBarComponents/SubscribePremium.vue'
@@ -148,6 +148,21 @@ const interaction_list = ref<{ name: interactionType; path: string }[]>([
     path: 'M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z',
   },
 ])
+
+function formatTime(time: string) {
+  if (!time) return ''
+  const now = new Date()
+  const pub = new Date(time)
+  const diff = now.getTime() - pub.getTime()
+  const seconds = Math.floor(diff / 1000)
+  const minutes = Math.floor(seconds / 60)
+  const hours = Math.floor(minutes / 60)
+  if (seconds < 60) return '刚刚'
+  if (minutes < 60) return `${minutes}分钟`
+  if (hours < 24) return `${hours}小时`
+  if (pub.getFullYear() === now.getFullYear()) return `${pub.getMonth() + 1}月${pub.getDate()}日`
+  return `${pub.getFullYear()}年${pub.getMonth() + 1}月${pub.getDate()}日`
+}
 
 function submitReply() {
   // TODO: API call
