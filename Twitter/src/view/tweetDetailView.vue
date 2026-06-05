@@ -129,7 +129,7 @@ const icon_retweet = ref(
   'M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z',
 )
 
-type interactionType = 'reply' | 'transpond' | 'upvote' | 'view'
+type interactionType = 'reply' | 'transpond' | 'upvote'
 const interaction_list = ref<{ name: interactionType; path: string }[]>([
   {
     name: 'reply',
@@ -143,25 +143,18 @@ const interaction_list = ref<{ name: interactionType; path: string }[]>([
     name: 'upvote',
     path: 'M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z',
   },
-  {
-    name: 'view',
-    path: 'M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z',
-  },
 ])
 
 function formatTime(time: string) {
   if (!time) return ''
-  const now = new Date()
   const pub = new Date(time)
-  const diff = now.getTime() - pub.getTime()
-  const seconds = Math.floor(diff / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const hours = Math.floor(minutes / 60)
-  if (seconds < 60) return '刚刚'
-  if (minutes < 60) return `${minutes}分钟`
-  if (hours < 24) return `${hours}小时`
-  if (pub.getFullYear() === now.getFullYear()) return `${pub.getMonth() + 1}月${pub.getDate()}日`
-  return `${pub.getFullYear()}年${pub.getMonth() + 1}月${pub.getDate()}日`
+  const hours = pub.getHours()
+  const minutes = pub.getMinutes().toString().padStart(2, '0')
+  const ampm = hours < 12 ? '上午' : '下午'
+  const h = hours % 12 || 12
+  const timeStr = `${ampm}${h}:${minutes}`
+  const dateStr = `${pub.getFullYear()}年${pub.getMonth() + 1}月${pub.getDate()}日`
+  return `${timeStr} · ${dateStr}`
 }
 
 function submitReply() {
@@ -267,13 +260,13 @@ main {
   color: var(--grey-color);
 }
 .tweet-body .text {
-  font-size: 22px;
+  font-size: 17px;
   line-height: 1.4;
   margin-bottom: 16px;
   white-space: pre-wrap;
 }
 .tweet-body .images img {
-  width: 100%;
+  max-width: 70%;
   border-radius: 16px;
   margin-bottom: 16px;
 }
