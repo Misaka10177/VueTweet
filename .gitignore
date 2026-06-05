@@ -58,6 +58,7 @@ application-dev.yml
 .mcp.json
 database-config.yaml
 database-config.json
+.playwright-mcp/
 
 # ===== Coverage / Test =====
 coverage/
