@@ -11,7 +11,7 @@
       <span>Misaka 10177</span>
       <span>已转帖</span>
     </div>
-    <div class="box">
+    <div class="box" @click="goDetail">
       <div class="profile_photo">
         <img src="/public/images/img.png" alt="" />
       </div>
@@ -78,9 +78,15 @@
 </template>
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import type { Tweet } from '@/types'
 const prop = defineProps<{ tweet: Tweet }>()
 const tweet = ref<Tweet>(prop.tweet)
+const router = useRouter()
+
+function goDetail() {
+  router.push({ path: '/tweet', query: { id: tweet.value.id } })
+}
 
 const displayTime = computed(() => {
   if (!tweet.value.publishTime) return ''
