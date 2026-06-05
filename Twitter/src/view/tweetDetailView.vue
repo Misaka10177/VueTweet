@@ -35,7 +35,8 @@
               <div class="meta">
                 <span class="time">{{ formatTime(tweet.publishTime) }}</span>
                 <span class="sep">·</span>
-                <span class="view-count">{{ tweet.interaction.view }}</span><span> 查看</span>
+                <span class="view-count">{{ tweet.interaction.view }}</span
+                ><span> 查看</span>
               </div>
             </div>
             <div class="tweet-actions">
@@ -75,11 +76,17 @@
               <img src="/images/img.png" alt="" />
             </div>
             <input type="text" placeholder="发表你的回复" v-model="replyText" />
-            <button class="reply-btn" @click="submitReply">回复</button>
+            <button class="reply-btn" @click="submitReply" :disabled="replyText.length === 0">
+              回复
+            </button>
           </div>
           <!-- 回复列表 -->
           <div class="replies" v-if="comments.length">
-            <TweetShow v-for="(comment, index) in comments" :key="index" :tweet="comment"></TweetShow>
+            <TweetShow
+              v-for="(comment, index) in comments"
+              :key="index"
+              :tweet="comment"
+            ></TweetShow>
           </div>
           <div class="no-replies" v-else>
             <div class="empty-text">暂无回复</div>
@@ -224,12 +231,8 @@ main {
   font-size: 20px;
   font-weight: 700;
 }
-.detail-content {
-  padding: 0 16px;
-}
-.main-tweet {
-  padding: 16px 0;
-  border-bottom: var(--boundary-style);
+.detail-content > div {
+  padding: 12px 2%;
 }
 .tweet-header {
   display: flex;
@@ -286,17 +289,17 @@ main {
   font-size: 14px;
   color: var(--grey-color);
   padding-bottom: 16px;
-  border-bottom: var(--boundary-style);
 }
 .tweet-body .meta .sep {
   margin: 0 4px;
 }
-.tweet-actions {
-  padding-top: 12px;
-}
 .interaction {
+  width: 100%;
+  height: 48px;
   display: flex;
   justify-content: space-between;
+  border-top: var(--boundary-style);
+  border-bottom: var(--boundary-style);
 }
 .interaction > div {
   display: flex;
@@ -314,7 +317,10 @@ main {
 }
 .interaction .icon div {
   position: absolute;
-  top: 0; bottom: 0; left: 0; right: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   margin: -8px;
   border-radius: 50%;
   transition: background 0.2s;
@@ -385,8 +391,12 @@ main {
 .reply-btn:hover {
   background: rgba(15, 20, 25, 0.8);
 }
-.replies {
-  padding-top: 8px;
+.reply-btn:disabled {
+  background: rgba(15, 20, 25, 0.5);
+  cursor: default;
+}
+.detail-content .replies {
+  padding: 12px 0;
 }
 .reply {
   border-bottom: var(--boundary-style);
