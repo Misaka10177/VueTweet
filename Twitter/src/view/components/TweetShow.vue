@@ -1,6 +1,6 @@
 <template>
   <div id="tweet">
-    <div class="repost">
+    <!-- <div class="repost">
       <span>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <g>
@@ -10,7 +10,7 @@
       </span>
       <span>Misaka 10177</span>
       <span>已转帖</span>
-    </div>
+    </div> -->
     <div class="box" @click="goDetail">
       <div class="profile_photo">
         <img src="/public/images/img.png" alt="" />
@@ -36,8 +36,8 @@
         <div class="tweet_text">
           {{ tweet.text }}
         </div>
-        <div class="tweet_tag">#お隣の天使様</div>
-        <div class="tweet_images">
+        <!-- <div class="tweet_tag">#お隣の天使様</div> -->
+        <div class="tweet_images" v-if="tweet.images && tweet.images.length > 0">
           <div class="img">
             <div>
               <img :src="tweet.images" alt="" />
