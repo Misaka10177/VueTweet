@@ -21,6 +21,11 @@
                 <div class="name">{{ tweet.author.name }}</div>
                 <div class="id">@{{ tweet.author.id }}</div>
               </div>
+              <div class="tweet_more">
+                <svg viewBox="0 0 24 24">
+                  <g><path :d="tweet_more_icon"></path></g>
+                </svg>
+              </div>
             </div>
             <div class="tweet-body">
               <div class="text">{{ tweet.text }}</div>
@@ -122,6 +127,9 @@ const replyText = ref('')
 
 const icon_back = ref(
   'M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z',
+)
+const tweet_more_icon = ref(
+  'M3 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm7 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z',
 )
 const icon_bookmark = ref(
   'M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z',
@@ -256,9 +264,17 @@ main {
   font-size: 15px;
   font-weight: 700;
 }
+.author-info {
+  flex: 1;
+}
 .author-info .id {
   font-size: 14px;
   color: var(--grey-color);
+}
+.tweet-header .tweet_more svg {
+  width: 18px;
+  height: 18px;
+  fill: var(--grey-color);
 }
 .tweet-body .text {
   font-size: 17px;
