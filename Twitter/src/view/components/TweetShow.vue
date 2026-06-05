@@ -85,7 +85,7 @@ const tweet = ref<Tweet>(prop.tweet)
 const router = useRouter()
 
 function goDetail() {
-  router.push({ path: '/tweet', query: { id: tweet.value.id } })
+  router.push('/tweet/' + tweet.value.id)
 }
 
 const displayTime = computed(() => {
