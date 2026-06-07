@@ -36,40 +36,31 @@ if (tweetStore.tweets.length) {
       tweet_list.value = res
       tweetStore.setTweets(res)
     })
-    .catch((err) => {
+    .catch((err: any) => {
       tweet_list.value = [
         {
           id: '1',
+          author: { id: 'Misaka', name: 'Misaka Mikoto', profile_photo: '/images/img.png' },
           text: '楽しかった！！！！</br>アンヴィル…………',
           images: '/images/92162034_p3.png',
-          interaction: {
-            reply: 222,
-            transpond: 333,
-            upvote: 444,
-            view: 999,
-          },
+          publishTime: '2026-06-04T02:00:00',
+          interaction: { reply: 222, transpond: 333, upvote: 444, view: 999, bookmark: 10 },
         },
         {
           id: '2',
-          text: '楽しかった！！！！</br>アンヴィル…………',
-          images: '/images/92162034_p3.png',
-          interaction: {
-            reply: 777,
-            transpond: 888,
-            upvote: 333,
-            view: 80,
-          },
+          author: { id: 'oO0Eve0Oo', name: 'Eve', profile_photo: '/images/img.png' },
+          text: '今日もいい天気ですね〜',
+          images: '/images/96919363_p0.jpg',
+          publishTime: '2026-06-05T10:00:00',
+          interaction: { reply: 55, transpond: 120, upvote: 310, view: 500, bookmark: 20 },
         },
         {
-          id: '2',
-          text: '楽しかった！！！！</br>アンヴィル…………',
+          id: '3',
+          author: { id: 'akakura1341', name: '赤倉🧸', profile_photo: '/images/img.png' },
+          text: '新しいプロジェクトを始めました！',
           images: '/images/92162034_p3.png',
-          interaction: {
-            reply: 777,
-            transpond: 888,
-            upvote: 333,
-            view: 80,
-          },
+          publishTime: '2026-06-03T15:00:00',
+          interaction: { reply: 88, transpond: 200, upvote: 500, view: 1200, bookmark: 50 },
         },
       ]
     })
