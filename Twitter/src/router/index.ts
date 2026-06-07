@@ -7,6 +7,7 @@ import notificationsView from '../view/notificationsView.vue'
 import chatView from '../view/chatView.vue'
 import grokView from '../view/grokView.vue'
 import bookmarksView from '../view/bookmarksView.vue'
+import tweetDetailView from '../view/tweetDetailView.vue'
 import userView from '../view/userView.vue'
 import BasicLayout from '@/layouts/BasicLayout.vue'
 import LoginView from '@/view/LoginView.vue'
@@ -34,6 +35,7 @@ const router = createRouter({
         { path: 'chat', component: chatView },
         { path: 'grok', component: grokView },
         { path: 'bookmarks', component: bookmarksView },
+        { path: 'tweet/:id', component: tweetDetailView },
         { path: 'user', component: userView },
       ],
     },

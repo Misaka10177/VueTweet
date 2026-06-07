@@ -3,24 +3,20 @@ package com.twitter.entity;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "twitter_user")
+@Table(name = "`user`")
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "user_id")
-    private String userId;
+    private String id;
 
     private String name;
-    private String picture;
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
+    @Column(name = "profile_photo")
+    private String profilePhoto;
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
-    public String getPicture() { return picture; }
-    public void setPicture(String picture) { this.picture = picture; }
+    public String getProfilePhoto() { return profilePhoto; }
+    public void setProfilePhoto(String profilePhoto) { this.profilePhoto = profilePhoto; }
 }

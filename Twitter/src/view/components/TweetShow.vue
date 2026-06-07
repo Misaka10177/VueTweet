@@ -1,7 +1,7 @@
 <template>
-  <div id="tweet">
+  <div id="tweet" :class="{ 'is-quoted': isQuoted }">
     <div class="repost">
-      <span>
+      <!-- <span>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <g>
             <path :d="repost_tweet_icon"></path>
@@ -9,19 +9,22 @@
         </svg>
       </span>
       <span>Misaka 10177</span>
-      <span>已转帖</span>
+      <span>已转帖</span> -->
     </div>
-    <div class="box">
-      <div class="profile_photo">
-        <img :src="`${base}images/img.png`" alt="" />
+    <div class="box" @click="goDetail">
+      <div class="avatar-col">
+        <div class="profile_photo">
+          <img :src="`${base}images/img.png`" alt="" />
+        </div>
+        <div v-if="isQuoted" class="thread-line"></div>
       </div>
       <div class="container">
         <div class="auther_name">
           <div>
-            <span class="name">赤倉🧸初画集「Ludique」発売中</span>
-            <span class="id">@akakura1341</span>
+            <span class="name">{{ tweet.author?.name }}</span>
+            <span class="id">@{{ tweet.author?.id }}</span>
             <span class="dot">·</span>
-            <span class="time">7小时</span>
+            <span class="time">{{ displayTime }}</span>
           </div>
           <div>
             <div class="tweet_more">
@@ -36,8 +39,8 @@
         <div class="tweet_text">
           {{ tweet.text }}
         </div>
-        <div class="tweet_tag">#お隣の天使様</div>
-        <div class="tweet_images">
+        <!-- <div class="tweet_tag">#お隣の天使様</div> -->
+        <div class="tweet_images" v-if="tweet.images && tweet.images.length > 0">
           <div class="img">
             <div>
               <img :src="tweet.images" alt="" />
@@ -77,11 +80,35 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import type { Tweet } from '@/types'
 const base = import.meta.env.BASE_URL
-const prop = defineProps<{ tweet: Tweet }>()
+const prop = withDefaults(defineProps<{ tweet: Tweet; isQuoted?: boolean }>(), { isQuoted: false })
 const tweet = ref<Tweet>(prop.tweet)
+const router = useRouter()
+
+function goDetail() {
+  router.push('/tweet/' + tweet.value.id)
+}
+
+const displayTime = computed(() => {
+  if (!tweet.value.publishTime) return ''
+  const now = new Date()
+  const pub = new Date(tweet.value.publishTime)
+  const diff = now.getTime() - pub.getTime()
+  const seconds = Math.floor(diff / 1000)
+  const minutes = Math.floor(seconds / 60)
+  const hours = Math.floor(minutes / 60)
+
+  if (seconds < 60) return '刚刚'
+  if (minutes < 60) return `${minutes}分钟`
+  if (hours < 24) return `${hours}小时`
+  if (pub.getFullYear() === now.getFullYear()) {
+    return `${pub.getMonth() + 1}月${pub.getDate()}日`
+  }
+  return `${pub.getFullYear()}年${pub.getMonth() + 1}月${pub.getDate()}日`
+})
 
 type interactionType = 'reply' | 'transpond' | 'upvote' | 'view'
 const page_tweet_interaction_icon = ref<{ name: interactionType; path: string }[]>([
@@ -129,9 +156,13 @@ function tab_click(tab) {}
   padding: 0 2%;
   border-bottom: var(--boundary-style);
 }
+#tweet.is-quoted {
+  border-bottom: none;
+}
 .repost {
   display: flex;
-  margin-top: 6px;
+  /* margin-top: 6px; */
+  padding: 6px 0;
 }
 .repost span {
   font-size: 12px;
@@ -150,12 +181,23 @@ function tab_click(tab) {}
   fill: var(--grey-color);
 }
 
+.avatar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 8px;
+}
 .profile_photo {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   overflow: hidden;
-  margin-right: 8px;
+}
+.thread-line {
+  width: 2px;
+  flex: 1;
+  background: rgba(207, 217, 222, 1.00);
+  margin-top: 4px;
 }
 .box {
   display: flex;
