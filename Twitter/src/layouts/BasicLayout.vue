@@ -49,12 +49,12 @@ header {
   min-width: 275px;
   width: 275px;
   height: 100vh;
-  border-right: var(--boundary-style);
 }
 header > div {
   position: fixed;
 }
 main {
+  border-left: var(--boundary-style);
   width: 1050px;
 }
 </style>

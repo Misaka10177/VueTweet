@@ -60,6 +60,11 @@ coverage/
 .eslintcache
 __screenshots__/
 
+# ===== MCP =====
+.mcp.json
+.playwright-mcp/
+database-config.yaml
+
 # ===== Misc =====
 *.tmp
 *.temp
