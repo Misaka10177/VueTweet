@@ -59,7 +59,7 @@ const mockReply2 = {
   interaction: { reply: 0, transpond: 0, upvote: 0, view: 0, bookmark: 0 },
 }
 const mockResponses = {
-  'GET /tweet': [mockTweet1, mockTweet2, mockTweet3],
+  'GET /tweet': [mockTweet1, mockTweet2, mockTweet3, mockReply1, mockReply2],
   'GET /tweet/1': { ...mockTweet1, replyTo: null },
   'GET /tweet/2': { ...mockTweet2, replyTo: null },
   'GET /tweet/3': { ...mockTweet3, replyTo: null },
