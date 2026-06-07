@@ -21,8 +21,8 @@
       <div class="container">
         <div class="auther_name">
           <div>
-            <span class="name">{{ tweet.author.name }}</span>
-            <span class="id">@{{ tweet.author.id }}</span>
+            <span class="name">{{ tweet.author?.name }}</span>
+            <span class="id">@{{ tweet.author?.id }}</span>
             <span class="dot">·</span>
             <span class="time">{{ displayTime }}</span>
           </div>

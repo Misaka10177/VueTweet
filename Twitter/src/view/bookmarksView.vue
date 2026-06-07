@@ -54,9 +54,11 @@ const icon_back = ref(
 const bookmarks = ref<Tweet[]>([
   {
     id: '1',
+    author: { id: 'Misaka', name: 'Misaka Mikoto', profile_photo: '/images/img.png' },
     text: '楽しかった！！！！\nアンヴィル…………',
     images: '/public/images/92162034_p3.png',
-    interaction: { reply: 222, transpond: 333, upvote: 444, view: 999 },
+    publishTime: '2026-06-04T02:00:00',
+    interaction: { reply: 222, transpond: 333, upvote: 444, view: 999, bookmark: 0 },
   },
 ])
 </script>
