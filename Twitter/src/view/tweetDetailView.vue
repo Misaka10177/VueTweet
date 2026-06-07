@@ -259,7 +259,7 @@ main {
   font-weight: 700;
 }
 .main-tweet {
-  padding: 0 2%;
+  padding: 0 16px;
   position: relative;
 }
 .tweet-header {
@@ -393,7 +393,7 @@ main {
   color: var(--theme-color);
 }
 .reply-input {
-  padding: 16px 2%;
+  padding: 16px;
   border-bottom: var(--boundary-style);
 }
 .reply-hint {

@@ -152,7 +152,7 @@ function tab_click(tab) {}
 </script>
 <style scope>
 #tweet {
-  padding: 0 2%;
+  padding: 0 16px;
   border-bottom: var(--boundary-style);
 }
 #tweet.is-quoted {
@@ -195,7 +195,7 @@ function tab_click(tab) {}
 .thread-line {
   width: 2px;
   flex: 1;
-  background: rgba(207, 217, 222, 1.00);
+  background: rgba(207, 217, 222, 1);
   margin-top: 4px;
 }
 .box {
