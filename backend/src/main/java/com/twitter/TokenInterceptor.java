@@ -1,8 +1,8 @@
 package com.twitter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.twitter.entity.Token;
-import com.twitter.repo.TokenRepo;
+import com.twitter.entity.UserAuth;
+import com.twitter.repo.UserAuthRepo;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -17,11 +17,11 @@ import java.util.Map;
 @Component
 public class TokenInterceptor implements HandlerInterceptor {
 
-    private final TokenRepo tokenRepo;
+    private final UserAuthRepo userAuthRepo;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public TokenInterceptor(TokenRepo tokenRepo) {
-        this.tokenRepo = tokenRepo;
+    public TokenInterceptor(UserAuthRepo userAuthRepo) {
+        this.userAuthRepo = userAuthRepo;
     }
 
     @Override
@@ -51,18 +51,18 @@ public class TokenInterceptor implements HandlerInterceptor {
         }
 
         String accessToken = authHeader.substring(7);
-        Token token = tokenRepo.findByAccessToken(accessToken);
-        if (token == null) {
+        UserAuth userAuth = userAuthRepo.findByAccessToken(accessToken);
+        if (userAuth == null) {
             writeError(response, "accessToken无效");
             return false;
         }
 
-        if (LocalDateTime.now().isAfter(token.getCreatedAt().plusDays(1))) {
+        if (LocalDateTime.now().isAfter(userAuth.getTokenCreatedAt().plusDays(1))) {
             writeError(response, "accessToken已过期，请刷新");
             return false;
         }
 
-        request.setAttribute("userId", token.getUserId());
+        request.setAttribute("userId", userAuth.getUserId());
         return true;
     }
 
@@ -83,18 +83,18 @@ public class TokenInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        Token token = tokenRepo.findByRefreshToken(refreshToken);
-        if (token == null) {
+        UserAuth userAuth = userAuthRepo.findByRefreshToken(refreshToken);
+        if (userAuth == null) {
             writeError(response, "refreshToken无效");
             return false;
         }
 
-        if (LocalDateTime.now().isAfter(token.getCreatedAt().plusDays(3))) {
+        if (LocalDateTime.now().isAfter(userAuth.getTokenCreatedAt().plusDays(3))) {
             writeError(response, "refreshToken已过期，请重新登录");
             return false;
         }
 
-        request.setAttribute("userId", token.getUserId());
+        request.setAttribute("userId", userAuth.getUserId());
         return true;
     }
 

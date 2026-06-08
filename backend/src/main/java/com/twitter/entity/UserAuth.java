@@ -4,14 +4,13 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "token")
-public class Token {
+@Table(name = "user_auth")
+public class UserAuth {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     @Column(name = "user_id")
     private String userId;
+
+    private String password;
 
     @Column(name = "access_token")
     private String accessToken;
@@ -19,17 +18,17 @@ public class Token {
     @Column(name = "refresh_token")
     private String refreshToken;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @Column(name = "token_created_at")
+    private LocalDateTime tokenCreatedAt;
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
     public String getAccessToken() { return accessToken; }
     public void setAccessToken(String accessToken) { this.accessToken = accessToken; }
     public String getRefreshToken() { return refreshToken; }
     public void setRefreshToken(String refreshToken) { this.refreshToken = refreshToken; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getTokenCreatedAt() { return tokenCreatedAt; }
+    public void setTokenCreatedAt(LocalDateTime tokenCreatedAt) { this.tokenCreatedAt = tokenCreatedAt; }
 }
