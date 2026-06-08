@@ -36,6 +36,15 @@ public class Tweet {
 
     private int bookmark;
 
+    @Column(name = "upvote_users", columnDefinition = "TEXT")
+    private String upvoteUsers;
+
+    @Column(name = "transpond_users", columnDefinition = "TEXT")
+    private String transpondUsers;
+
+    @Column(name = "bookmark_users", columnDefinition = "TEXT")
+    private String bookmarkUsers;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public User getAuthor() { return author; }
@@ -58,4 +67,10 @@ public class Tweet {
     public void setViewCount(int viewCount) { this.viewCount = viewCount; }
     public int getBookmark() { return bookmark; }
     public void setBookmark(int bookmark) { this.bookmark = bookmark; }
+    public String getUpvoteUsers() { return upvoteUsers; }
+    public void setUpvoteUsers(String upvoteUsers) { this.upvoteUsers = upvoteUsers; }
+    public String getTranspondUsers() { return transpondUsers; }
+    public void setTranspondUsers(String transpondUsers) { this.transpondUsers = transpondUsers; }
+    public String getBookmarkUsers() { return bookmarkUsers; }
+    public void setBookmarkUsers(String bookmarkUsers) { this.bookmarkUsers = bookmarkUsers; }
 }
