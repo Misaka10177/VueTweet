@@ -1,7 +1,11 @@
 package com.twitter.controller;
 
 import com.twitter.entity.Tweet;
+import com.twitter.entity.TweetInteraction;
+import com.twitter.entity.TweetReply;
 import com.twitter.entity.User;
+import com.twitter.repo.TweetInteractionRepo;
+import com.twitter.repo.TweetReplyRepo;
 import com.twitter.repo.TweetRepo;
 import com.twitter.repo.UserRepo;
 import org.springframework.web.bind.annotation.*;
@@ -9,16 +13,21 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 public class TweetController {
 
     private final TweetRepo tweetRepo;
     private final UserRepo userRepo;
+    private final TweetInteractionRepo interactionRepo;
+    private final TweetReplyRepo replyRepo;
 
-    public TweetController(TweetRepo tweetRepo, UserRepo userRepo) {
+    public TweetController(TweetRepo tweetRepo, UserRepo userRepo, TweetInteractionRepo interactionRepo, TweetReplyRepo replyRepo) {
         this.tweetRepo = tweetRepo;
         this.userRepo = userRepo;
+        this.interactionRepo = interactionRepo;
+        this.replyRepo = replyRepo;
     }
 
     @GetMapping("/tweet/{tweetId}/replies")
@@ -28,7 +37,10 @@ public class TweetController {
         if (!tweetOpt.isPresent()) {
             return Collections.emptyList();
         }
-        List<Tweet> replies = tweetRepo.findByReplyToOrderByCreatedAtDesc(tweetOpt.get());
+        List<TweetReply> replyRelations = replyRepo.findByTweetId(tweetId);
+        List<Long> replyIds = replyRelations.stream().map(TweetReply::getReplyId).collect(Collectors.toList());
+        List<Tweet> replies = tweetRepo.findAllById(replyIds);
+        replies.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
         List<Map<String, Object>> result = new ArrayList<>();
         for (Tweet t : replies) {
             result.add(tweetToMap(t, currentUserId));
@@ -59,11 +71,14 @@ public class TweetController {
             return result;
         }
         Tweet reply = new Tweet();
-        reply.setReplyTo(tweetOpt.get());
         reply.setAuthor(author);
         reply.setText(text);
         reply.setCreatedAt(LocalDateTime.now());
         tweetRepo.save(reply);
+        TweetReply relation = new TweetReply();
+        relation.setTweetId(tweetId);
+        relation.setReplyId(reply.getId());
+        replyRepo.save(relation);
         Tweet original = tweetOpt.get();
         original.setReply(original.getReply() + 1);
         tweetRepo.save(original);
@@ -74,20 +89,20 @@ public class TweetController {
 
     @PostMapping("/tweet/{tweetId}/upvote")
     public Map<String, Object> toggleUpvote(@PathVariable Long tweetId, HttpServletRequest request) {
-        return toggleUserList(tweetId, (String) request.getAttribute("userId"), "upvote");
+        return toggleInteraction(tweetId, (String) request.getAttribute("userId"), "upvote");
     }
 
     @PostMapping("/tweet/{tweetId}/transpond")
     public Map<String, Object> toggleTranspond(@PathVariable Long tweetId, HttpServletRequest request) {
-        return toggleUserList(tweetId, (String) request.getAttribute("userId"), "transpond");
+        return toggleInteraction(tweetId, (String) request.getAttribute("userId"), "transpond");
     }
 
     @PostMapping("/tweet/{tweetId}/bookmark")
     public Map<String, Object> toggleBookmark(@PathVariable Long tweetId, HttpServletRequest request) {
-        return toggleUserList(tweetId, (String) request.getAttribute("userId"), "bookmark");
+        return toggleInteraction(tweetId, (String) request.getAttribute("userId"), "bookmark");
     }
 
-    private Map<String, Object> toggleUserList(Long tweetId, String userId, String type) {
+    private Map<String, Object> toggleInteraction(Long tweetId, String userId, String type) {
         Map<String, Object> result = new LinkedHashMap<>();
         Optional<Tweet> tweetOpt = tweetRepo.findById(tweetId);
         if (!tweetOpt.isPresent() || userId == null) {
@@ -95,53 +110,37 @@ public class TweetController {
             return result;
         }
         Tweet tweet = tweetOpt.get();
-        String users;
+        TweetInteraction existing = interactionRepo.findByTweetIdAndUserIdAndType(tweetId, userId, type);
+        boolean active;
+        if (existing != null) {
+            interactionRepo.delete(existing);
+            active = false;
+        } else {
+            TweetInteraction interaction = new TweetInteraction();
+            interaction.setTweetId(tweetId);
+            interaction.setUserId(userId);
+            interaction.setType(type);
+            interaction.setCreatedAt(LocalDateTime.now());
+            interactionRepo.save(interaction);
+            active = true;
+        }
         int count;
         switch (type) {
             case "upvote":
-                users = tweet.getUpvoteUsers();
+                tweet.setUpvote(tweet.getUpvote() + (active ? 1 : -1));
                 count = tweet.getUpvote();
                 break;
             case "transpond":
-                users = tweet.getTranspondUsers();
+                tweet.setTranspond(tweet.getTranspond() + (active ? 1 : -1));
                 count = tweet.getTranspond();
                 break;
             case "bookmark":
-                users = tweet.getBookmarkUsers();
+                tweet.setBookmark(tweet.getBookmark() + (active ? 1 : -1));
                 count = tweet.getBookmark();
                 break;
             default:
                 result.put("status", "error");
                 return result;
-        }
-        Set<String> userSet = new HashSet<>();
-        if (users != null && !users.isEmpty()) {
-            userSet.addAll(Arrays.asList(users.split(",")));
-        }
-        boolean active;
-        if (userSet.contains(userId)) {
-            userSet.remove(userId);
-            count--;
-            active = false;
-        } else {
-            userSet.add(userId);
-            count++;
-            active = true;
-        }
-        String newUsers = String.join(",", userSet);
-        switch (type) {
-            case "upvote":
-                tweet.setUpvoteUsers(newUsers);
-                tweet.setUpvote(count);
-                break;
-            case "transpond":
-                tweet.setTranspondUsers(newUsers);
-                tweet.setTranspond(count);
-                break;
-            case "bookmark":
-                tweet.setBookmarkUsers(newUsers);
-                tweet.setBookmark(count);
-                break;
         }
         tweetRepo.save(tweet);
         result.put("status", "success");
@@ -185,9 +184,13 @@ public class TweetController {
         map.put("text", t.getText());
         map.put("images", t.getImages());
         map.put("publishTime", t.getCreatedAt());
-        Tweet replyTo = t.getReplyTo();
-        if (replyTo != null) {
-            map.put("replyTo", tweetToMap(replyTo, currentUserId));
+        // replyTo: 查关系表找被回复的推文
+        TweetReply parentRelation = replyRepo.findByReplyId(t.getId());
+        if (parentRelation != null) {
+            Optional<Tweet> parentTweet = tweetRepo.findById(parentRelation.getTweetId());
+            if (parentTweet.isPresent()) {
+                map.put("replyTo", tweetToMap(parentTweet.get(), currentUserId));
+            }
         }
         Map<String, Integer> interaction = new LinkedHashMap<>();
         interaction.put("reply", t.getReply());
@@ -196,17 +199,15 @@ public class TweetController {
         interaction.put("view", t.getViewCount());
         interaction.put("bookmark", t.getBookmark());
         map.put("interaction", interaction);
-        // myXxx 布尔值
         if (currentUserId != null) {
-            map.put("myUpvote", containsUser(t.getUpvoteUsers(), currentUserId));
-            map.put("myTranspond", containsUser(t.getTranspondUsers(), currentUserId));
-            map.put("myBookmark", containsUser(t.getBookmarkUsers(), currentUserId));
+            map.put("myUpvote", hasInteraction(t.getId(), currentUserId, "upvote"));
+            map.put("myTranspond", hasInteraction(t.getId(), currentUserId, "transpond"));
+            map.put("myBookmark", hasInteraction(t.getId(), currentUserId, "bookmark"));
         }
         return map;
     }
 
-    private boolean containsUser(String users, String userId) {
-        if (users == null || users.isEmpty()) return false;
-        return Arrays.asList(users.split(",")).contains(userId);
+    private boolean hasInteraction(Long tweetId, String userId, String type) {
+        return interactionRepo.findByTweetIdAndUserIdAndType(tweetId, userId, type) != null;
     }
 }
