@@ -43,7 +43,7 @@
         <div class="tweet_images" v-if="tweet.images && tweet.images.length > 0">
           <div class="img">
             <div>
-              <img :src="tweet.images" alt="" />
+              <img :src="base + tweet.images.replace(/^\//, '')" alt="" />
             </div>
           </div>
         </div>

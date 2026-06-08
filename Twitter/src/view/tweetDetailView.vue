@@ -19,7 +19,7 @@
               <div class="avatar-col">
                 <div v-if="tweet.replyTo" class="thread-line-top"></div>
                 <div class="profile_photo">
-                  <img :src="tweet.author.profile_photo" alt="" />
+                  <img :src="base + tweet.author.profile_photo.replace(/^\//, '')" alt="" />
                 </div>
               </div>
               <div class="author-info">
@@ -35,7 +35,7 @@
             <div class="tweet-body">
               <div class="text">{{ tweet.text }}</div>
               <div class="images" v-if="tweet.images">
-                <img :src="tweet.images" alt="" />
+                <img :src="base + tweet.images.replace(/^\//, '')" alt="" />
               </div>
               <div class="meta">
                 <span class="time">{{ formatTime(tweet.publishTime) }}</span>
@@ -92,7 +92,7 @@
             </div>
             <div class="reply-row">
               <div class="reply-avatar">
-                <img src="/images/img.png" alt="" />
+                <img :src="`${base}images/img.png`" alt="" />
               </div>
               <input
                 type="text"
@@ -151,6 +151,7 @@ import {
 const route = useRoute()
 const userInfoStore = useUserInfoStore()
 const tweetStore = useTweetStore()
+const base = import.meta.env.BASE_URL
 const tweet = ref<Tweet | null>(null)
 const comments = ref<Tweet[]>([])
 const replyText = ref('')
