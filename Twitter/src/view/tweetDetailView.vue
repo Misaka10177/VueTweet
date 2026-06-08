@@ -261,6 +261,7 @@ main {
 }
 .main-tweet {
   padding: 0 16px;
+  padding-top: 12px;
   position: relative;
 }
 .tweet-header {

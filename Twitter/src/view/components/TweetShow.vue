@@ -59,7 +59,9 @@
                     </g>
                   </svg>
                 </span>
-                <span>{{ tweet.interaction[item.name] }}</span>
+                <span v-if="tweet.interaction[item.name] > 0">{{
+                  tweet.interaction[item.name]
+                }}</span>
               </span>
             </div>
           </div>
@@ -154,6 +156,10 @@ function tab_click(tab) {}
 #tweet {
   padding: 0 16px;
   border-bottom: var(--boundary-style);
+  transition: background 0.3s;
+}
+#tweet:hover {
+  background: rgba(0, 0, 0, 0.03);
 }
 #tweet.is-quoted {
   border-bottom: none;
