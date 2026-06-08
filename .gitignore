@@ -56,20 +56,15 @@ application-dev.yml
 
 # ===== MCP / Database Config =====
 .mcp.json
+.playwright-mcp/
 database-config.yaml
 database-config.json
-.playwright-mcp/
 
 # ===== Coverage / Test =====
 coverage/
 *.tsbuildinfo
 .eslintcache
 __screenshots__/
-
-# ===== MCP =====
-.mcp.json
-.playwright-mcp/
-database-config.yaml
 
 # ===== Misc =====
 *.tmp

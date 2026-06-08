@@ -25,7 +25,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-const avatarUrl = new URL('../../../../../public/images/img.png', import.meta.url).href
+const base = import.meta.env.BASE_URL
+const avatarUrl = `${base}images/img.png`
 const user_list = ref([
   {
     id: 'Misaka',
