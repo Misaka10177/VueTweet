@@ -227,6 +227,7 @@ watch(
 main {
   width: 100%;
   min-height: 100vh;
+  border-left: none;
   border-right: var(--boundary-style);
 }
 .top {
