@@ -25,6 +25,7 @@ const mockTweet1 = {
   images: base + 'images/92162034_p3.png',
   publishTime: '2026-06-04T02:00:00',
   interaction: { reply: 2, transpond: 333, upvote: 444, view: 999, bookmark: 10 },
+  myUpvote: false, myTranspond: false, myBookmark: false,
 }
 const mockTweet2 = {
   id: '2',
@@ -33,6 +34,7 @@ const mockTweet2 = {
   images: base + 'images/96919363_p0.jpg',
   publishTime: '2026-06-05T10:00:00',
   interaction: { reply: 55, transpond: 120, upvote: 310, view: 500, bookmark: 20 },
+  myUpvote: false, myTranspond: false, myBookmark: false,
 }
 const mockTweet3 = {
   id: '3',
@@ -41,6 +43,7 @@ const mockTweet3 = {
   images: base + 'images/92162034_p3.png',
   publishTime: '2026-06-03T15:00:00',
   interaction: { reply: 88, transpond: 200, upvote: 500, view: 1200, bookmark: 50 },
+  myUpvote: false, myTranspond: false, myBookmark: false,
 }
 const mockReply1 = {
   id: '4',
@@ -49,6 +52,7 @@ const mockReply1 = {
   images: '',
   publishTime: '2026-06-05T16:27:29',
   interaction: { reply: 0, transpond: 0, upvote: 0, view: 0, bookmark: 0 },
+  myUpvote: false, myTranspond: false, myBookmark: false,
 }
 const mockReply2 = {
   id: '5',
@@ -57,6 +61,7 @@ const mockReply2 = {
   images: '',
   publishTime: '2026-06-05T10:17:17',
   interaction: { reply: 0, transpond: 0, upvote: 0, view: 0, bookmark: 0 },
+  myUpvote: false, myTranspond: false, myBookmark: false,
 }
 const mockResponses = {
   'GET /tweet': [mockTweet1, mockTweet2, mockTweet3, mockReply1, mockReply2],
@@ -69,6 +74,15 @@ const mockResponses = {
   'GET /tweet/2/replies': [],
   'GET /tweet/3/replies': [],
   'POST /tweet/1/reply': { status: 'success', id: '6' },
+  'POST /tweet/1/upvote': { status: 'success', active: true, count: 445 },
+  'POST /tweet/1/transpond': { status: 'success', active: true, count: 334 },
+  'POST /tweet/1/bookmark': { status: 'success', active: true, count: 11 },
+  'POST /tweet/2/upvote': { status: 'success', active: true, count: 311 },
+  'POST /tweet/2/transpond': { status: 'success', active: true, count: 121 },
+  'POST /tweet/2/bookmark': { status: 'success', active: true, count: 21 },
+  'POST /tweet/3/upvote': { status: 'success', active: true, count: 501 },
+  'POST /tweet/3/transpond': { status: 'success', active: true, count: 201 },
+  'POST /tweet/3/bookmark': { status: 'success', active: true, count: 51 },
   'GET /trends': [
     { category: '中国香港特别行政区', topic: 'LING NIVEA BRAND FRIEND' },
     { category: '台湾', topic: '#skywongravee' },
