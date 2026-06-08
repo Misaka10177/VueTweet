@@ -34,7 +34,14 @@ export const useTweetStore = defineStore('tweet', () => {
     }
   }
 
-  return { tweets, setTweets }
+  function updateTweet(id: string, data: Partial<Tweet>) {
+    const index = tweets.value.findIndex((t) => t.id === id)
+    if (index !== -1) {
+      tweets.value[index] = { ...tweets.value[index], ...data }
+    }
+  }
+
+  return { tweets, setTweets, updateTweet }
 })
 
 export const useTokenStore = defineStore('token', () => {

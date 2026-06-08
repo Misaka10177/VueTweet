@@ -1,9 +1,7 @@
 package com.twitter.controller;
 
-import com.twitter.entity.Account;
-import com.twitter.entity.Token;
-import com.twitter.repo.AccountRepo;
-import com.twitter.repo.TokenRepo;
+import com.twitter.entity.UserAuth;
+import com.twitter.repo.UserAuthRepo;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.Cookie;
@@ -17,12 +15,10 @@ import java.util.*;
 @RestController
 public class AuthController {
 
-    private final AccountRepo accountRepo;
-    private final TokenRepo tokenRepo;
+    private final UserAuthRepo userAuthRepo;
 
-    public AuthController(AccountRepo accountRepo, TokenRepo tokenRepo) {
-        this.accountRepo = accountRepo;
-        this.tokenRepo = tokenRepo;
+    public AuthController(UserAuthRepo userAuthRepo) {
+        this.userAuthRepo = userAuthRepo;
     }
 
     @PostMapping("/login")
@@ -37,8 +33,8 @@ public class AuthController {
             return result;
         }
 
-        Account account = accountRepo.findById(username.trim()).orElse(null);
-        if (account == null || !hashPassword(password).equals(account.getPassword())) {
+        UserAuth userAuth = userAuthRepo.findById(username.trim()).orElse(null);
+        if (userAuth == null || !hashPassword(password).equals(userAuth.getPassword())) {
             result.put("status", "error");
             result.put("message", "用户名或密码错误");
             return result;
@@ -46,17 +42,11 @@ public class AuthController {
 
         String accessToken = UUID.randomUUID().toString().replace("-", "");
         String refreshToken = UUID.randomUUID().toString().replace("-", "");
-        LocalDateTime now = LocalDateTime.now();
 
-        Token token = tokenRepo.findByUserId(username.trim());
-        if (token == null) {
-            token = new Token();
-            token.setUserId(username.trim());
-        }
-        token.setAccessToken(accessToken);
-        token.setRefreshToken(refreshToken);
-        token.setCreatedAt(now);
-        tokenRepo.save(token);
+        userAuth.setAccessToken(accessToken);
+        userAuth.setRefreshToken(refreshToken);
+        userAuth.setTokenCreatedAt(LocalDateTime.now());
+        userAuthRepo.save(userAuth);
 
         setRefreshTokenCookie(refreshToken, response);
 
@@ -70,16 +60,15 @@ public class AuthController {
     public Map<String, String> refresh(HttpServletRequest request, HttpServletResponse response) {
         Map<String, String> result = new HashMap<>();
         String userId = (String) request.getAttribute("userId");
-        Token matched = tokenRepo.findByUserId(userId);
+        UserAuth userAuth = userAuthRepo.findById(userId).orElse(null);
 
         String newAccessToken = UUID.randomUUID().toString().replace("-", "");
         String newRefreshToken = UUID.randomUUID().toString().replace("-", "");
-        LocalDateTime now = LocalDateTime.now();
 
-        matched.setAccessToken(newAccessToken);
-        matched.setRefreshToken(newRefreshToken);
-        matched.setCreatedAt(now);
-        tokenRepo.save(matched);
+        userAuth.setAccessToken(newAccessToken);
+        userAuth.setRefreshToken(newRefreshToken);
+        userAuth.setTokenCreatedAt(LocalDateTime.now());
+        userAuthRepo.save(userAuth);
 
         setRefreshTokenCookie(newRefreshToken, response);
 
@@ -94,9 +83,12 @@ public class AuthController {
         Map<String, String> result = new HashMap<>();
         String userId = (String) request.getAttribute("userId");
 
-        Token token = tokenRepo.findByUserId(userId);
-        if (token != null) {
-            tokenRepo.delete(token);
+        UserAuth userAuth = userAuthRepo.findById(userId).orElse(null);
+        if (userAuth != null) {
+            userAuth.setAccessToken(null);
+            userAuth.setRefreshToken(null);
+            userAuth.setTokenCreatedAt(null);
+            userAuthRepo.save(userAuth);
         }
 
         String cookieValue = "refreshToken=; Path=/; HttpOnly; Max-Age=0; SameSite=None; Secure";
@@ -108,23 +100,11 @@ public class AuthController {
     }
 
     private void setRefreshTokenCookie(String refreshToken, HttpServletResponse response) {
-        // 手动设置Set-Cookie头，确保跨域请求能携带cookie
         String cookieValue = String.format(
             "refreshToken=%s; Path=/; HttpOnly; Max-Age=%d; SameSite=None; Secure",
             refreshToken, 3 * 24 * 60 * 60
         );
         response.addHeader("Set-Cookie", cookieValue);
-    }
-
-    private String getRefreshTokenFromCookie(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) return null;
-        for (Cookie cookie : cookies) {
-            if ("refreshToken".equals(cookie.getName())) {
-                return cookie.getValue();
-            }
-        }
-        return null;
     }
 
     public static String hashPassword(String password) {

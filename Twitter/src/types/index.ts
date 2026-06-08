@@ -17,6 +17,9 @@ export interface Tweet {
     view: number
     bookmark: number
   }
+  myUpvote?: boolean
+  myTranspond?: boolean
+  myBookmark?: boolean
 }
 export interface Trend {
   category: string

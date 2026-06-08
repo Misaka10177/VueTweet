@@ -49,26 +49,38 @@
         </div>
         <div class="tweet_interaction">
           <div>
-            <div v-for="(item, index) in page_tweet_interaction_icon" :key="index">
+            <div
+              v-for="(item, index) in page_tweet_interaction_icon"
+              :key="index"
+              @click.stop="toggle(item.name)"
+              :class="['active', { activated: activeStates[item.name] }]"
+            >
               <span>
                 <span class="icon">
                   <div></div>
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <g>
-                      <path :d="item.path"></path>
+                      <path :d="activeStates[item.name] && item.activePath ? item.activePath : item.path"></path>
                     </g>
                   </svg>
                 </span>
-                <span>{{ tweet.interaction[item.name] }}</span>
+                <span v-if="tweet.interaction[item.name] > 0">{{
+                  tweet.interaction[item.name]
+                }}</span>
               </span>
             </div>
           </div>
           <div>
-            <div v-for="(item, index) in page_tweet_interaction_icon_1" :key="index">
+            <div
+              v-for="(item, index) in page_tweet_interaction_icon_1"
+              :key="index"
+              @click.stop="toggle(item.name)"
+              :class="['active', { activated: activeStates[item.name] }]"
+            >
               <span class="icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <g>
-                    <path :d="item.path"></path>
+                    <path :d="activeStates[item.name] && item.activePath ? item.activePath : item.path"></path>
                   </g>
                 </svg>
               </span>
@@ -83,13 +95,51 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Tweet } from '@/types'
+import { toggleUpvote, toggleTranspond, toggleBookmark } from '@/request/api.js'
+
 const base = import.meta.env.BASE_URL
 const prop = withDefaults(defineProps<{ tweet: Tweet; isQuoted?: boolean }>(), { isQuoted: false })
 const tweet = ref<Tweet>(prop.tweet)
 const router = useRouter()
 
+const activeStates = ref<Record<string, boolean>>({
+  upvote: !!tweet.value.myUpvote,
+  transpond: !!tweet.value.myTranspond,
+  bookmark: !!tweet.value.myBookmark,
+  Retweet: !!tweet.value.myTranspond,
+})
+
 function goDetail() {
   router.push('/tweet/' + tweet.value.id)
+}
+
+const toggleActions: Record<string, (id: string) => Promise<any>> = {
+  upvote: toggleUpvote,
+  transpond: toggleTranspond,
+  Retweet: toggleTranspond,
+  bookmark: toggleBookmark,
+}
+
+const myKeyMap: Record<string, 'myUpvote' | 'myTranspond' | 'myBookmark'> = {
+  upvote: 'myUpvote',
+  transpond: 'myTranspond',
+  Retweet: 'myTranspond',
+  bookmark: 'myBookmark',
+}
+
+function toggle(name: string) {
+  const apiName = name === 'Retweet' ? 'transpond' : name
+  const apiFn = toggleActions[name]
+  if (!apiFn) return
+  apiFn(tweet.value.id).then((res: any) => {
+    if (res.status === 'success') {
+      activeStates.value[name] = res.active
+      activeStates.value[apiName] = res.active
+      tweet.value.interaction[apiName as keyof typeof tweet.value.interaction] = res.count
+      const myKey = myKeyMap[name]
+      if (myKey) (tweet.value as any)[myKey] = res.active
+    }
+  })
 }
 
 const displayTime = computed(() => {
@@ -111,7 +161,7 @@ const displayTime = computed(() => {
 })
 
 type interactionType = 'reply' | 'transpond' | 'upvote' | 'view'
-const page_tweet_interaction_icon = ref<{ name: interactionType; path: string }[]>([
+const page_tweet_interaction_icon = ref<{ name: interactionType; path: string; activePath?: string }[]>([
   {
     name: 'reply',
     path: 'M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z',
@@ -123,6 +173,7 @@ const page_tweet_interaction_icon = ref<{ name: interactionType; path: string }[
   {
     name: 'upvote',
     path: 'M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z',
+    activePath: 'M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z',
   },
   {
     name: 'view',
@@ -130,10 +181,11 @@ const page_tweet_interaction_icon = ref<{ name: interactionType; path: string }[
   },
 ])
 
-const page_tweet_interaction_icon_1 = ref([
+const page_tweet_interaction_icon_1 = ref<{ name: string; path: string; activePath?: string }[]>([
   {
     name: 'bookmark',
     path: 'M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z',
+    activePath: 'M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5z',
   },
   {
     name: 'Retweet',
@@ -153,8 +205,12 @@ function tab_click(tab) {}
 </script>
 <style scope>
 #tweet {
-  padding: 0 2%;
+  padding: 0 16px;
   border-bottom: var(--boundary-style);
+  transition: background 0.3s;
+}
+#tweet:hover {
+  background: rgba(0, 0, 0, 0.03);
 }
 #tweet.is-quoted {
   border-bottom: none;
@@ -196,7 +252,7 @@ function tab_click(tab) {}
 .thread-line {
   width: 2px;
   flex: 1;
-  background: rgba(207, 217, 222, 1.00);
+  background: rgba(207, 217, 222, 1);
   margin-top: 4px;
 }
 .box {
@@ -348,5 +404,31 @@ function tab_click(tab) {}
   width: 16px;
   height: 16px;
   fill: var(--grey-color);
+}
+.tweet_interaction .active {
+  --active-color: var(--grey-color);
+  --active-bg: transparent;
+}
+.tweet_interaction .active svg {
+  fill: var(--active-color);
+}
+.tweet_interaction .active span:last-child {
+  color: var(--active-color);
+}
+.tweet_interaction > div:first-child > div:nth-child(2) {
+  --theme-active-color: rgb(0, 186, 124);
+  --theme-active-bg: rgba(0, 186, 124, 0.1);
+}
+.tweet_interaction > div:first-child > div:nth-child(3) {
+  --theme-active-color: rgb(249, 24, 128);
+  --theme-active-bg: rgba(249, 24, 128, 0.1);
+}
+.tweet_interaction > div:last-child > div:first-child {
+  --theme-active-color: rgb(29, 155, 240);
+  --theme-active-bg: rgba(29, 155, 240, 0.1);
+}
+.tweet_interaction .active.activated {
+  --active-color: var(--theme-active-color, var(--grey-color));
+  --active-bg: var(--theme-active-bg, transparent);
 }
 </style>

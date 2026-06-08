@@ -23,10 +23,6 @@ public class Tweet {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @ManyToOne
-    @JoinColumn(name = "reply_to_id")
-    private Tweet replyTo;
-
     private int reply;
     private int transpond;
     private int upvote;
@@ -46,8 +42,6 @@ public class Tweet {
     public void setImages(String images) { this.images = images; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    public Tweet getReplyTo() { return replyTo; }
-    public void setReplyTo(Tweet replyTo) { this.replyTo = replyTo; }
     public int getReply() { return reply; }
     public void setReply(int reply) { this.reply = reply; }
     public int getTranspond() { return transpond; }
