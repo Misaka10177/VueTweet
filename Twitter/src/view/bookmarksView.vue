@@ -59,7 +59,6 @@ onMounted(() => {
     bookmarks.value = [res]
   })
 })
->>>>>>> claude_code
 </script>
 <style scoped>
 #bookmarks {
