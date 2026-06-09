@@ -15,24 +15,28 @@
         </div>
       </div>
       <div class="nav">
-        <div
-          v-for="(tab, index) in page_left_nav_list"
+        <router-link
+          :to="tab.to || '/'"
+          v-for="(tab, index) in nav_list"
           :key="index"
           :class="{ nav_now: tab.to == $route.path }"
         >
-          <div class="icon">
-            <svg
-              :viewBox="tab.to == $route.path ? tab.viewBox_fill : tab.viewBox || '0 0 24 24'"
-              aria-hidden="true"
-            >
-              <g>
-                <path :d="tab.to == $route.path ? tab.icon_fill : tab.icon"></path>
-              </g>
-            </svg>
+          <div class="tab">
+            <div>
+              <div class="icon">
+                <svg
+                  :viewBox="(tab.to == $route.path ? tab.viewBox_fill : tab.viewBox) || '0 0 24 24'"
+                  aria-hidden="true"
+                >
+                  <g>
+                    <path :d="tab.to == $route.path ? tab.icon_fill : tab.icon"></path>
+                  </g>
+                </svg>
+              </div>
+              <div class="title">{{ tab.title }}</div>
+            </div>
           </div>
-          <div class="title">{{ tab.title }}</div>
-          <router-link :to="tab.to || '/'"></router-link>
-        </div>
+        </router-link>
       </div>
       <div class="post">
         <div class="title">发帖</div>
@@ -69,7 +73,7 @@ const base = import.meta.env.BASE_URL
 const logo_x = ref(
   'M21.742 21.75l-7.563-11.179 7.056-8.321h-2.456l-5.691 6.714-4.54-6.714H2.359l7.29 10.776L2.25 21.75h2.456l6.035-7.118 4.818 7.118h6.191-.008zM7.739 3.818L18.81 20.182h-2.447L5.29 3.818h2.447z',
 )
-const page_left_nav_list = ref([
+const nav_list = ref([
   {
     icon: 'M21.591 7.146L12.52 1.157c-.316-.21-.724-.21-1.04 0l-9.071 5.99c-.26.173-.409.456-.409.757v13.183c0 .502.418.913.929.913h6.638c.511 0 .929-.41.929-.913v-7.075h3.008v7.075c0 .502.418.913.929.913h6.639c.51 0 .928-.41.928-.913V7.904c0-.301-.158-.584-.408-.758zM20 20l-4.5.01.011-7.097c0-.502-.418-.913-.928-.913H9.44c-.511 0-.929.41-.929.913L8.5 20H4V8.773l8.011-5.342L20 8.764z',
     icon_fill:
@@ -158,13 +162,18 @@ a {
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
+  width: inherit;
 }
 .top {
   --icon-size: 1.75rem;
-  width: 275px;
+  /* width: 100%; */
   display: flex;
   flex-direction: column;
 }
+/* .icon {
+  width: 20px;
+  height: 20px;
+} */
 svg {
   width: var(--icon-size);
   height: var(--icon-size);
@@ -173,25 +182,32 @@ svg {
 .nav {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  /* align-items: center; */
 }
-.top > div:nth-child(-n + 2) > div {
-  width: 80%;
-  height: 50px;
-  display: flex;
-  align-items: center;
+.logo {
+  padding: 12px;
+}
+.logo svg {
+  width: 30px;
+  height: 30px;
+}
+.tab {
   position: relative;
+  user-select: none;
 }
-.top .nav a {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+.tab > div {
+  width: fit-content;
   display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 50px;
+  transition: background 0.2s;
 }
-.top .nav .icon {
-  margin-right: 20px;
+.tab > div:hover {
+  background: rgba(15, 20, 25, 0.1);
+}
+.top .nav .title {
+  margin: 0 16px 0 20px;
 }
 .top .nav div {
   font-weight: 400;
@@ -202,6 +218,7 @@ svg {
   font-weight: 500;
 }
 .top .post {
+  margin: 16px 0;
   min-height: 52px;
   width: 230px;
   display: flex;
