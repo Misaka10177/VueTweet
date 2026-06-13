@@ -7,7 +7,7 @@ export interface Tweet {
   id: string
   author: TweetAuthor
   text: string
-  images: string
+  images: string[]
   publishTime: string
   replyTo?: Tweet
   interaction: {

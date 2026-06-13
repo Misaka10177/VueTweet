@@ -40,10 +40,21 @@
           {{ tweet.text }}
         </div>
         <!-- <div class="tweet_tag">#お隣の天使様</div> -->
-        <div class="tweet_images" v-if="tweet.images && tweet.images.length > 0">
-          <div class="img">
-            <div>
-              <img :src="base + tweet.images.replace(/^\//, '')" alt="" />
+        <div
+          class="tweet_images"
+          v-if="tweet.images && tweet.images.length > 0"
+          :class="tweet_images_class"
+        >
+          <div>
+            <div class="img" v-if="tweet.images.length === 1">
+              <div>
+                <img @load="tweet_images_onload" :src="base + tweet.images[0]" alt="" />
+              </div>
+            </div>
+            <div v-else class="img images_more" v-for="(img, index) in tweet.images" :key="index">
+              <div>
+                <img :src="base + img" alt="" />
+              </div>
             </div>
           </div>
         </div>
@@ -60,7 +71,11 @@
                   <div></div>
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <g>
-                      <path :d="activeStates[item.name] && item.activePath ? item.activePath : item.path"></path>
+                      <path
+                        :d="
+                          activeStates[item.name] && item.activePath ? item.activePath : item.path
+                        "
+                      ></path>
                     </g>
                   </svg>
                 </span>
@@ -80,7 +95,9 @@
               <span class="icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <g>
-                    <path :d="activeStates[item.name] && item.activePath ? item.activePath : item.path"></path>
+                    <path
+                      :d="activeStates[item.name] && item.activePath ? item.activePath : item.path"
+                    ></path>
                   </g>
                 </svg>
               </span>
@@ -161,7 +178,9 @@ const displayTime = computed(() => {
 })
 
 type interactionType = 'reply' | 'transpond' | 'upvote' | 'view'
-const page_tweet_interaction_icon = ref<{ name: interactionType; path: string; activePath?: string }[]>([
+const page_tweet_interaction_icon = ref<
+  { name: interactionType; path: string; activePath?: string }[]
+>([
   {
     name: 'reply',
     path: 'M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z',
@@ -173,7 +192,8 @@ const page_tweet_interaction_icon = ref<{ name: interactionType; path: string; a
   {
     name: 'upvote',
     path: 'M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z',
-    activePath: 'M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z',
+    activePath:
+      'M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z',
   },
   {
     name: 'view',
@@ -202,6 +222,22 @@ const repost_tweet_icon = ref(
 )
 
 function tab_click(tab) {}
+
+const tweet_image_landscape = ref(false)
+const tweet_images_class = computed(() => ({
+  landscape: tweet_image_landscape.value === true,
+  images_2: tweet.value.images.length === 2,
+  images_3: tweet.value.images.length === 3,
+  images_4: tweet.value.images.length === 4,
+  images_6: tweet.value.images.length >= 5 && tweet.value.images.length <= 6,
+  images_9: tweet.value.images.length >= 7 && tweet.value.images.length <= 9,
+}))
+function tweet_images_onload(e) {
+  const img = e.target
+  if (img.naturalWidth > img.naturalHeight) {
+    tweet_image_landscape.value = true
+  }
+}
 </script>
 <style scope>
 #tweet {
@@ -306,20 +342,108 @@ function tab_click(tab) {}
   margin-top: 1em;
 }
 .tweet_images {
-  display: flex;
-  margin-top: 1em;
-  height: 400px;
-  max-height: 500px;
-}
-.tweet_images .img {
-  height: inherit;
+  /* display: flex; */
 
+  margin-top: 1em;
+  /* height: 510px; */
+
+  /* grid: auto-flow / repeat(3, 1fr); */
+  /* grid-auto-rows: auto;
+  grid-auto-columns: auto;
+  grid-auto-flow: row dense; */
+  /* grid-template-rows: repeat(3, auto); */
+}
+
+.tweet_images > div {
+  width: fit-content;
+  /* max-height: inherit; */
   overflow: hidden;
   border-radius: 10px;
+  border: rgba(207, 217, 222, 1) solid 1px;
+  display: grid;
+  gap: 2px;
+  max-height: 510px;
+}
+.tweet_images.landscape > div {
+  max-height: 290px;
+}
+
+/*         两格及以上图片展示               */
+.tweet_images .img.images_more {
+  width: inherit;
+}
+.tweet_images .img.images_more > div {
+  width: inherit;
+}
+.tweet_images .img.images_more img {
+  width: inherit;
+  object-fit: cover;
+}
+
+/*         两格展示               */
+.tweet_images.images_2 > div {
+  max-height: 290px;
+  width: 100%;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/*         三格展示               */
+.tweet_images.images_3 > div {
+  max-height: 290px;
+  width: 100%;
+  grid-template-rows: repeat(2, 50%);
+  grid-template-columns: repeat(2, 1fr);
+}
+.tweet_images.images_3 .img:first-child {
+  grid-row: span 2;
+}
+
+/*         四格展示               */
+.tweet_images.images_4 > div {
+  max-height: 290px;
+  width: 100%;
+  grid-template-rows: repeat(2, 50%);
+  grid-template-columns: repeat(2, 1fr);
+}
+.tweet_images.images_4 .img:first-child {
+  /* grid-row: span 2; */
+}
+
+/*         六格展示               */
+.tweet_images.images_6 > div {
+  /* max-height: 290px; */
+  width: 100%;
+  grid-template-rows: repeat(2, 50%);
+  grid-template-columns: repeat(3, 1fr);
+}
+.tweet_images.images_6 .img:first-child {
+  /* grid-row: span 2; */
+}
+
+/*         九格展示               */
+.tweet_images.images_9 > div {
+  /* max-height: 290px; */
+  width: 100%;
+  grid-template-rows: repeat(3, 33.33%);
+  grid-template-columns: repeat(3, 1fr);
+}
+.tweet_images.images_9 .img:first-child {
+  /* grid-row: span 2; */
+}
+
+.tweet_images .img {
+  max-height: inherit;
+  height: inherit;
+
+  /* width: initial; */
+  width: fit-content;
+
   /* position: relative; */
 }
 .tweet_images .img > div {
-  height: inherit;
+  /* max-height: inherit; */
+  height: 100%;
+  width: fit-content;
   /* position: absolute;
   top: 0;
   left: 0;
@@ -327,7 +451,10 @@ function tab_click(tab) {}
   bottom: 0; */
 }
 .tweet_images .img img {
-  height: inherit;
+  max-height: 100%;
+  max-width: 100%;
+  /* height: inherit;
+  width: inherit; */
   object-fit: contain;
 }
 .tweet_interaction {
