@@ -30,7 +30,7 @@ const mockTweet2 = {
   id: '2',
   author: { id: 'oO0Eve0Oo', name: 'Eve', profile_photo: '/images/img.png' },
   text: '今日もいい天気ですね〜',
-  images: ['/images/96919363_p0.jpg', '/images/92162034_p3.png'],
+  images: ['/images/93447255_p0.png'],
   publishTime: '2026-06-05T10:00:00',
   interaction: { reply: 55, transpond: 120, upvote: 310, view: 500, bookmark: 20 },
   myUpvote: false, myTranspond: false, myBookmark: false,
