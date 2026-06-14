@@ -34,8 +34,8 @@
             </div>
             <div class="tweet-body">
               <div class="text">{{ tweet.text }}</div>
-              <div class="images" v-if="tweet.images">
-                <img :src="base + tweet.images.replace(/^\//, '')" alt="" />
+              <div class="images" v-if="tweet.images && tweet.images.length">
+                <img v-for="(img, i) in tweet.images" :key="i" :src="base + img" alt="" />
               </div>
               <div class="meta">
                 <span class="time">{{ formatTime(tweet.publishTime) }}</span>

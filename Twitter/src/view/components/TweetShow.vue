@@ -378,6 +378,7 @@ function tweet_images_onload(e) {
 .tweet_images .img.images_more img {
   width: inherit;
   object-fit: cover;
+  height: 100%;
 }
 
 /*         两格展示               */

@@ -182,7 +182,17 @@ public class TweetController {
             map.put("author", authorMap);
         }
         map.put("text", t.getText());
-        map.put("images", t.getImages());
+        // images: 数据库存JSON数组字符串，解析为List
+        String imagesStr = t.getImages();
+        if (imagesStr != null && !imagesStr.isEmpty() && imagesStr.startsWith("[")) {
+            try {
+                map.put("images", new com.fasterxml.jackson.databind.ObjectMapper().readValue(imagesStr, java.util.List.class));
+            } catch (Exception e) {
+                map.put("images", java.util.Collections.emptyList());
+            }
+        } else {
+            map.put("images", java.util.Collections.emptyList());
+        }
         map.put("publishTime", t.getCreatedAt());
         // replyTo: 查关系表找被回复的推文
         TweetReply parentRelation = replyRepo.findByReplyId(t.getId());
