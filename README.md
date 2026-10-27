@@ -2,6 +2,8 @@
 
 本项目是一个仿 X / Twitter 的全栈练习项目，仅用于学习与技术交流，不用于任何商业用途。
 
+AI真是太好用了（
+
 ## 技术构成
 
 | 层级 | 技术栈 |
@@ -22,6 +24,8 @@
 - 首页信息流分页、文字与多图发帖、帖子详情、回复、点赞/转发/收藏、趋势、推荐关注、书签和个人资料页。
 - 图片上传限制：最多 4 张、单张 5MB，支持 JPG / PNG / WebP / GIF。
 
+后面可能我看看Nuxt怎么个事...
+
 ### 后端实现
 
 - 标准分层：`controller / service / repo / entity / dto / security / exception`。
@@ -34,6 +38,8 @@
 - 会话列表、指定会话撤销、修改密码并踢出其他设备、安全审计日志。
 - 文件上传保存到本地 `uploads/`，通过 `/uploads/**` 提供静态访问。
 - Flyway 管理数据库版本，Hibernate 使用 `ddl-auto=validate` 校验实体与表结构。
+
+- 额，后面还要改，可能看看Django怎么个流程，反正这mysql是有点太...落后了？
 
 ### 数据库结构
 
@@ -87,6 +93,7 @@ backend/src/main/resources/application.properties
 用户名：deepseek
 密码：  deepseek123
 ```
+大肥鱼也是不白吃饭（
 
 ## 预览
 
