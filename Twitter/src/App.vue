@@ -6,15 +6,6 @@
 
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-// import { getToken } from '@/request/api.js'
-// import { useTokenStore } from '@/stores/store'
-
-// getToken().then((res) => {
-//   if (res.status == 'success') {
-//     const tokenStore = useTokenStore()
-//     tokenStore.setTokens(res.accessToken)
-//   }
-// })
 </script>
 
 <style>

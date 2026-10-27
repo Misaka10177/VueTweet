@@ -3,6 +3,7 @@ target/
 dist/
 dist-ssr/
 build/
+.vite/
 
 # ===== Dependencies =====
 node_modules/
@@ -47,11 +48,14 @@ application-local.properties
 application-local.yml
 application-dev.properties
 application-dev.yml
+application-prod.properties
+application-prod.yml
+uploads/
 
 # ===== Environment =====
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 *.local
 
 # ===== MCP / Database Config =====
@@ -65,9 +69,13 @@ coverage/
 *.tsbuildinfo
 .eslintcache
 __screenshots__/
+test-results/
+playwright-report/
 
 # ===== Misc =====
 *.tmp
 *.temp
 *.bak
 *.orig
+*.pid
+*.hprof

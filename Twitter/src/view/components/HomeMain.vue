@@ -3,132 +3,93 @@
     <div class="tab">
       <TabControl :tab_list="tab_list" @tab-click="tab_click"></TabControl>
     </div>
-    <div class="send_tweet"></div>
+    <div class="send_tweet">
+      <PostComposer @posted="onPosted"></PostComposer>
+    </div>
     <div class="tweet_list">
-      <div class="update_tweet">显示 333 帖子</div>
+      <div class="update_tweet" v-if="loading">加载中…</div>
+      <div class="update_tweet" v-else>显示 {{ tweet_list.length }} 帖子</div>
+      <div class="load_error" v-if="load_error" role="alert">{{ load_error }}</div>
       <div class="tweets">
-        <TweetShow v-for="(tweet, index) in tweet_list" :key="index" :tweet="tweet"></TweetShow>
+        <TweetShow v-for="tweet in tweet_list" :key="tweet.id" :tweet="tweet"></TweetShow>
       </div>
+      <button
+        v-if="has_more"
+        type="button"
+        class="load_more"
+        :disabled="loading_more"
+        @click="loadMore"
+      >
+        {{ loading_more ? '加载中…' : '加载更多' }}
+      </button>
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
-import { ref } from 'vue'
-import TweetShow from './TweetShow.vue'
-import TabControl from './TabControl.vue'
-
-import { useTweetStore } from '@/stores/store'
-
-import { getTweetList } from '../../request/api.js'
-
+import { computed, onMounted, ref } from 'vue'
 import type { Tweet } from '@/types'
+import { getTweetList } from '@/request/api'
+import { useTweetStore } from '@/stores/store'
+import PostComposer from './PostComposer.vue'
+import TabControl from './TabControl.vue'
+import TweetShow from './TweetShow.vue'
 
+const PAGE_SIZE = 20
 const tab_list = ref(['为你推荐', '正在关注'])
-
-const tweet_list = ref<Tweet[]>([])
-
 const tweetStore = useTweetStore()
-if (tweetStore.tweets.length) {
-  tweet_list.value = tweetStore.tweets
-} else {
-  getTweetList()
-    .then((res: Tweet[]) => {
-      tweet_list.value = res
-      tweetStore.setTweets(res)
-    })
-    .catch((err: any) => {
-      tweet_list.value = [
-        {
-          id: '1',
-          author: { id: 'Misaka', name: 'Misaka Mikoto', profile_photo: '/images/img.png' },
-          text: '楽しかった！！！！</br>アンヴィル…………',
-          images: ['/images/92162034_p3.png', '/images/92162034_p3.png'],
-          // images: ['/images/92162034_p3.png'],
-          publishTime: '2026-06-04T02:00:00',
-          interaction: { reply: 222, transpond: 333, upvote: 444, view: 999, bookmark: 10 },
-        },
-        {
-          id: '122',
-          author: { id: 'Misaka', name: 'Misaka Mikoto', profile_photo: '/images/img.png' },
-          text: '楽しかった！！！！</br>アンヴィル…………',
-          images: ['/images/92162034_p3.png', '/images/92162034_p3.png', '/images/92162034_p3.png'],
-          // images: ['/images/92162034_p3.png'],
-          publishTime: '2026-06-04T02:00:00',
-          interaction: { reply: 222, transpond: 333, upvote: 444, view: 999, bookmark: 10 },
-        },
-        {
-          id: '1333',
-          author: { id: 'Misaka', name: 'Misaka Mikoto', profile_photo: '/images/img.png' },
-          text: '楽しかった！！！！</br>アンヴィル…………',
-          images: [
-            '/images/92162034_p3.png',
-            '/images/92162034_p3.png',
-            '/images/92162034_p3.png',
-            '/images/92162034_p3.png',
-          ],
-          // images: ['/images/92162034_p3.png'],
-          publishTime: '2026-06-04T02:00:00',
-          interaction: { reply: 222, transpond: 333, upvote: 444, view: 999, bookmark: 10 },
-        },
-        {
-          id: '555',
-          author: { id: 'Misaka', name: 'Misaka Mikoto', profile_photo: '/images/img.png' },
-          text: '楽しかった！！！！</br>アンヴィル…………',
-          images: [
-            '/images/92162034_p3.png',
-            '/images/92162034_p3.png',
-            '/images/92162034_p3.png',
-            '/images/92162034_p3.png',
-            '/images/92162034_p3.png',
-            '/images/92162034_p3.png',
-          ],
-          // images: ['/images/92162034_p3.png'],
-          publishTime: '2026-06-04T02:00:00',
-          interaction: { reply: 222, transpond: 333, upvote: 444, view: 999, bookmark: 10 },
-        },
-        {
-          id: '999',
-          author: { id: 'Misaka', name: 'Misaka Mikoto', profile_photo: '/images/img.png' },
-          text: '楽しかった！！！！</br>アンヴィル…………',
-          images: [
-            '/images/92162034_p3.png',
-            '/images/92162034_p3.png',
-            '/images/92162034_p3.png',
-            '/images/92162034_p3.png',
-            '/images/92162034_p3.png',
-            '/images/92162034_p3.png',
-            '/images/92162034_p3.png',
-            '/images/92162034_p3.png',
-            '/images/92162034_p3.png',
-          ],
-          // images: ['/images/92162034_p3.png'],
-          publishTime: '2026-06-04T02:00:00',
-          interaction: { reply: 222, transpond: 333, upvote: 444, view: 999, bookmark: 10 },
-        },
-        {
-          id: '2',
-          author: { id: 'oO0Eve0Oo', name: 'Eve', profile_photo: '/images/img.png' },
-          text: '今日もいい天気ですね〜',
-          images: ['/images/93447255_p0.png'],
-          publishTime: '2026-06-05T10:00:00',
-          interaction: { reply: 55, transpond: 120, upvote: 310, view: 500, bookmark: 20 },
-        },
-        {
-          id: '3',
-          author: { id: 'akakura1341', name: '赤倉🧸', profile_photo: '/images/img.png' },
-          text: '新しいプロジェクトを始めました！',
-          images: ['/images/92162034_p3.png'],
-          publishTime: '2026-06-03T15:00:00',
-          interaction: { reply: 88, transpond: 200, upvote: 500, view: 1200, bookmark: 50 },
-        },
-      ]
-    })
+const tweet_list = computed(() => tweetStore.tweets)
+const loading = ref(false)
+const loading_more = ref(false)
+const load_error = ref('')
+const page = ref(0)
+const has_more = ref(false)
+
+async function loadTweets() {
+  loading.value = true
+  load_error.value = ''
+  try {
+    const res = (await getTweetList(0, PAGE_SIZE)) as Tweet[]
+    const items = Array.isArray(res) ? res : []
+    tweetStore.setTweets(items)
+    page.value = 0
+    has_more.value = items.length === PAGE_SIZE
+  } catch {
+    load_error.value = '帖子加载失败，请确认后端已启动'
+  } finally {
+    loading.value = false
+  }
 }
 
-function tab_click(tab: string) {
-  // console.log(tab)
+async function loadMore() {
+  if (!has_more.value || loading_more.value) return
+  loading_more.value = true
+  load_error.value = ''
+  try {
+    const res = (await getTweetList(page.value + 1, PAGE_SIZE)) as Tweet[]
+    const items = Array.isArray(res) ? res : []
+    tweetStore.appendTweets(items)
+    page.value += 1
+    has_more.value = items.length === PAGE_SIZE
+  } catch {
+    load_error.value = '加载更多失败，请稍后重试'
+  } finally {
+    loading_more.value = false
+  }
 }
+
+function onPosted(tweet: Tweet) {
+  tweetStore.prependTweet(tweet)
+  load_error.value = ''
+}
+
+function tab_click() {
+  // 预留：切换“为你推荐 / 正在关注”
+}
+
+onMounted(loadTweets)
 </script>
+
 <style scoped>
 .update_tweet {
   height: 40px;
@@ -138,6 +99,27 @@ function tab_click(tab: string) {
   font-size: 14px;
   color: var(--theme-color);
   border-bottom: var(--boundary-style);
+}
+.load_error {
+  padding: 12px 16px;
+  color: #f4212e;
+  font-size: 13px;
+  border-bottom: var(--boundary-style);
+}
+.load_more {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  border: none;
+  border-bottom: var(--boundary-style);
+  background: #fff;
+  color: var(--theme-color);
+  font-size: 14px;
+  cursor: pointer;
+}
+.load_more:disabled {
+  color: var(--grey-color);
+  cursor: default;
 }
 .tab {
   height: 53px;

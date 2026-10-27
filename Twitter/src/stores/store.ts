@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import type { Tweet, Trend } from '@/types'
@@ -29,40 +29,28 @@ export const useTweetStore = defineStore('tweet', () => {
   const tweets = ref(<Tweet[]>[])
 
   function setTweets(tweetList: Tweet[]) {
-    if (!tweets.value.length) {
-      tweets.value = tweetList
-    }
+    const fetchedIds = new Set(tweetList.map((tweet) => tweet.id))
+    const localOnly = tweets.value.filter((tweet) => !fetchedIds.has(tweet.id))
+    tweets.value = [...localOnly, ...tweetList]
   }
 
   function updateTweet(id: string, data: Partial<Tweet>) {
     const index = tweets.value.findIndex((t) => t.id === id)
-    if (index !== -1) {
-      tweets.value[index] = { ...tweets.value[index], ...data }
+    const current = tweets.value[index]
+    if (current) {
+      tweets.value[index] = { ...current, ...data }
     }
   }
 
-  return { tweets, setTweets, updateTweet }
-})
-
-export const useTokenStore = defineStore('token', () => {
-  const accessToken = ref(<string>'')
-
-  function setTokens(token: string) {
-    accessToken.value = token
+  function prependTweet(tweet: Tweet) {
+    tweets.value = [tweet, ...tweets.value.filter((t) => t.id !== tweet.id)]
   }
 
-  return { accessToken, setTokens }
-})
-export const useUserInfoStore = defineStore('userInfo', () => {
-  const userId = ref('')
-  const username = ref('')
-
-  function setUserid(id: string) {
-    userId.value = id
-  }
-  function setUsername(name: string) {
-    username.value = name
+  function appendTweets(tweetList: Tweet[]) {
+    const existing = new Set(tweets.value.map((tweet) => tweet.id))
+    const incoming = tweetList.filter((tweet) => !existing.has(tweet.id))
+    tweets.value = [...tweets.value, ...incoming]
   }
 
-  return { userId, username, setUserid, setUsername }
+  return { tweets, setTweets, updateTweet, prependTweet, appendTweets }
 })

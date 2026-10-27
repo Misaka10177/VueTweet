@@ -6,11 +6,13 @@ import javax.persistence.*;
 @Table(name = "`user`")
 public class User {
     @Id
+    @Column(length = 50)
     private String id;
 
+    @Column(length = 255)
     private String name;
 
-    @Column(name = "profile_photo")
+    @Column(name = "profile_photo", length = 255)
     private String profilePhoto;
 
     public String getId() { return id; }

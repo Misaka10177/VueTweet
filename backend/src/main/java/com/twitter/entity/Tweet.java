@@ -10,9 +10,12 @@ public class Tweet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User author;
+
+    @Column(name = "reply_to_id")
+    private Long replyToId;
 
     @Column(columnDefinition = "TEXT")
     private String text;
@@ -20,22 +23,30 @@ public class Tweet {
     @Column(columnDefinition = "TEXT")
     private String images;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
     private int reply;
+
+    @Column(nullable = false)
     private int transpond;
+
+    @Column(nullable = false)
     private int upvote;
 
-    @Column(name = "view_count")
+    @Column(name = "view_count", nullable = false)
     private int viewCount;
 
+    @Column(nullable = false)
     private int bookmark;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public User getAuthor() { return author; }
     public void setAuthor(User author) { this.author = author; }
+    public Long getReplyToId() { return replyToId; }
+    public void setReplyToId(Long replyToId) { this.replyToId = replyToId; }
     public String getText() { return text; }
     public void setText(String text) { this.text = text; }
     public String getImages() { return images; }

@@ -36,7 +36,7 @@
         </div>
         <div class="login">
           <div class="title">已有账号?</div>
-          <router-link to="/join/login"><button>登入</button></router-link>
+          <router-link :to="{ path: '/join/login', query: $route.query }"><button>登入</button></router-link>
           <button>
             <div class="icon">
               <svg :viewBox="logo_grok.viewBox" aria-hidden="true">

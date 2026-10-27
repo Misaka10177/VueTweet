@@ -14,7 +14,7 @@
     <div class="box" @click="goDetail">
       <div class="avatar-col">
         <div class="profile_photo">
-          <img :src="`${base}images/img.png`" alt="" />
+          <img :src="avatarUrl" alt="" />
         </div>
         <div v-if="isQuoted" class="thread-line"></div>
       </div>
@@ -48,12 +48,12 @@
           <div>
             <div class="img" v-if="tweet.images.length === 1">
               <div>
-                <img @load="tweet_images_onload" :src="base + tweet.images[0]" alt="" />
+                <img @load="tweet_images_onload" :src="mediaUrl(tweet.images[0])" alt="" />
               </div>
             </div>
             <div v-else class="img images_more" v-for="(img, index) in tweet.images" :key="index">
               <div>
-                <img :src="base + img" alt="" />
+                <img :src="mediaUrl(img)" alt="" />
               </div>
             </div>
           </div>
@@ -112,12 +112,17 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Tweet } from '@/types'
-import { toggleUpvote, toggleTranspond, toggleBookmark } from '@/request/api.js'
+import { mediaUrl } from '@/utils/media'
+import { toggleUpvote, toggleTranspond, toggleBookmark } from '@/request/api'
 
 const base = import.meta.env.BASE_URL
 const prop = withDefaults(defineProps<{ tweet: Tweet; isQuoted?: boolean }>(), { isQuoted: false })
 const tweet = ref<Tweet>(prop.tweet)
 const router = useRouter()
+
+const avatarUrl = computed(
+  () => mediaUrl(tweet.value.author?.profile_photo) || `${base}images/img.png`,
+)
 
 const activeStates = ref<Record<string, boolean>>({
   upvote: !!tweet.value.myUpvote,
@@ -221,8 +226,6 @@ const repost_tweet_icon = ref(
   'M4.75 3.79l4.603 4.3-1.706 1.82L6 8.38v7.37c0 .97.784 1.75 1.75 1.75H13V20H7.75c-2.347 0-4.25-1.9-4.25-4.25V8.38L1.853 9.91.147 8.09l4.603-4.3zm11.5 2.71H11V4h5.25c2.347 0 4.25 1.9 4.25 4.25v7.37l1.647-1.53 1.706 1.82-4.603 4.3-4.603-4.3 1.706-1.82L18 15.62V8.25c0-.97-.784-1.75-1.75-1.75z',
 )
 
-function tab_click(tab) {}
-
 const tweet_image_landscape = ref(false)
 const tweet_images_class = computed(() => ({
   landscape: tweet_image_landscape.value === true,
@@ -232,8 +235,8 @@ const tweet_images_class = computed(() => ({
   images_6: tweet.value.images.length >= 5 && tweet.value.images.length <= 6,
   images_9: tweet.value.images.length >= 7 && tweet.value.images.length <= 9,
 }))
-function tweet_images_onload(e) {
-  const img = e.target
+function tweet_images_onload(e: Event) {
+  const img = e.target as HTMLImageElement
   if (img.naturalWidth > img.naturalHeight) {
     tweet_image_landscape.value = true
   }
@@ -457,6 +460,13 @@ function tweet_images_onload(e) {
   /* height: inherit;
   width: inherit; */
   object-fit: contain;
+}
+/* 单图没有 images_2/3/4/6/9 类，单独限制高度；多图继续走宫格 */
+.tweet_images:not(.images_2):not(.images_3):not(.images_4):not(.images_6):not(.images_9) .img img {
+  max-height: 510px;
+}
+.tweet_images.landscape:not(.images_2):not(.images_3):not(.images_4):not(.images_6):not(.images_9) .img img {
+  max-height: 290px;
 }
 .tweet_interaction {
   /* width: 96%; */

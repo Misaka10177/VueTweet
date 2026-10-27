@@ -52,12 +52,15 @@
             <div>{{ userName }}</div>
           </div>
           <div class="password">
-            <input v-model="password" type="password" placeholder="密码" />
+            <input v-model="password" type="password" placeholder="密码" @keyup.enter="click_login" />
           </div>
+          <div class="error" v-if="error">{{ error }}</div>
           <div class="forget_password">忘记密码？</div>
         </div>
         <div class="login_input">
-          <button @click="click_login" :disabled="password.length > 0 ? false : true">登录</button>
+          <button @click="click_login" :disabled="loading || password.length === 0">
+            {{ loading ? '登录中…' : '登录' }}
+          </button>
           <div class="tip">还没有账号？<span>注册</span></div>
         </div>
       </div>
@@ -66,13 +69,17 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue'
-import { checkUser, login } from '@/request/api.js'
-
-import { useTokenStore } from '@/stores/store'
-
+import axios from 'axios'
+import { useRoute } from 'vue-router'
+import { checkUser } from '@/request/api'
+import { useAuthStore } from '@/stores/auth'
 import router from '@/router'
 
 const user_exists = ref(false)
+const error = ref('')
+const loading = ref(false)
+const route = useRoute()
+const auth = useAuthStore()
 
 const logo_x = ref(
   'M21.742 21.75l-7.563-11.179 7.056-8.321h-2.456l-5.691 6.714-4.54-6.714H2.359l7.29 10.776L2.25 21.75h2.456l6.035-7.118 4.818 7.118h6.191-.008zM7.739 3.818L18.81 20.182h-2.447L5.29 3.818h2.447z',
@@ -98,20 +105,48 @@ const login_option = ref([
 const userName = ref('')
 const password = ref('')
 function next() {
+  error.value = ''
   checkUser({ username: userName.value }).then((res) => {
     if (res.status == 'success') {
       user_exists.value = true
+    } else {
+      error.value = res.message || '用户不存在'
     }
   })
 }
-function click_login() {
-  login({ username: userName.value, password: password.value }).then((res) => {
-    if (res.status == 'success') {
-      const tokenStore = useTokenStore()
-      tokenStore.setTokens(res.accessToken)
-      router.push('/')
-    }
-  })
+
+function redirectTarget() {
+  const redirect = route.query.redirect
+  if (typeof redirect !== 'string'
+    || !redirect.startsWith('/')
+    || redirect.startsWith('//')
+    || redirect.startsWith('/join')) {
+    return '/'
+  }
+  return redirect
+}
+
+function errorMessage(err: unknown) {
+  if (axios.isAxiosError(err)) {
+    const data = err.response?.data as { message?: string } | undefined
+    if (data?.message) return data.message
+    if (!err.response) return '无法连接服务器，请确认后端已启动'
+  }
+  return '登录失败，请稍后再试'
+}
+
+async function click_login() {
+  if (!password.value || loading.value) return
+  error.value = ''
+  loading.value = true
+  try {
+    await auth.login(userName.value.trim(), password.value)
+    router.push(redirectTarget())
+  } catch (err) {
+    error.value = errorMessage(err)
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 <style scoped>
@@ -297,6 +332,14 @@ input {
   padding-top: 0;
   color: var(--theme-color);
   justify-content: start;
+}
+.info_input .error {
+  height: auto;
+  margin-top: 6px;
+  padding: 0;
+  color: #f4212e;
+  font-size: 13px;
+  line-height: 18px;
 }
 .login_input button {
   height: 50px;

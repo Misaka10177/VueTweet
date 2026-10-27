@@ -1,15 +1,22 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import Antd from 'ant-design-vue'
-import 'ant-design-vue/dist/reset.css'
 
 import App from './App.vue'
 import router from './router'
+import { useAuthStore } from './stores/auth'
 
-const app = createApp(App)
+async function bootstrap() {
+  const app = createApp(App)
 
-app.use(createPinia())
-app.use(router)
-app.use(Antd)
+  app.use(createPinia())
 
-app.mount('#app')
+  // Restore the session from the HttpOnly refresh cookie before the first
+  // navigation so the router guard does not flash the login page.
+  await useAuthStore().ensureSession()
+
+  app.use(router)
+  await router.isReady()
+  app.mount('#app')
+}
+
+bootstrap()

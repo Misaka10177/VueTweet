@@ -38,13 +38,13 @@
           </div>
         </router-link>
       </div>
-      <div class="post">
+      <button class="post" type="button" @click="showComposer = true">
         <div class="title">发帖</div>
-      </div>
+      </button>
     </div>
     <div class="user" @click="click_user">
       <div class="profile_photo">
-        <img :src="`${base}images/img.png`" alt="" />
+        <img :src="profilePhoto" alt="" />
       </div>
       <div class="info">
         <div class="name">{{ username }}</div>
@@ -62,14 +62,34 @@
         <div @click="click_logout">登出 @{{ userId }}</div>
       </div>
     </div>
+
+    <Teleport to="body">
+      <div v-if="showComposer" class="compose-overlay" @click.self="showComposer = false">
+        <div class="compose-modal" role="dialog" aria-modal="true" aria-label="发帖">
+          <div class="compose-modal-head">
+            <button type="button" class="compose-cancel" @click="showComposer = false">
+              取消
+            </button>
+            <span class="compose-title">发帖</span>
+            <span class="compose-spacer"></span>
+          </div>
+          <PostComposer @posted="onPosted"></PostComposer>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue'
-import { getuserInfo, logout } from '@/request/api.js'
+import { computed, ref } from 'vue'
 import router from '@/router'
+import { useAuthStore } from '@/stores/auth'
+import { useTweetStore } from '@/stores/store'
+import { mediaUrl } from '@/utils/media'
+import type { Tweet } from '@/types'
+import PostComposer from './components/PostComposer.vue'
 
 const base = import.meta.env.BASE_URL
+const auth = useAuthStore()
 const logo_x = ref(
   'M21.742 21.75l-7.563-11.179 7.056-8.321h-2.456l-5.691 6.714-4.54-6.714H2.359l7.29 10.776L2.25 21.75h2.456l6.035-7.118 4.818 7.118h6.191-.008zM7.739 3.818L18.81 20.182h-2.447L5.29 3.818h2.447z',
 )
@@ -137,19 +157,26 @@ const user_option_show = ref(false)
 function click_user() {
   user_option_show.value = !user_option_show.value
 }
-const username = ref('')
-const userId = ref('')
-getuserInfo().then((res) => {
-  username.value = res.username
-  userId.value = res.userId
-  // console.log(res)
-})
-function click_logout() {
-  logout().then((res) => {
-    if (res.status !== 'error') {
-      router.push('/join')
-    }
-  })
+const username = computed(() => auth.user?.name ?? '')
+const userId = computed(() => auth.user?.id ?? '')
+const profilePhoto = computed(
+  () => mediaUrl(auth.user?.profilePhoto) || `${base}images/img.png`,
+)
+const showComposer = ref(false)
+const tweetStore = useTweetStore()
+
+function onPosted(tweet: Tweet) {
+  tweetStore.prependTweet(tweet)
+  showComposer.value = false
+  if (router.currentRoute.value.path !== '/') {
+    router.push('/')
+  }
+}
+
+async function click_logout() {
+  user_option_show.value = false
+  await auth.logout()
+  router.push('/join')
 }
 </script>
 <style scoped>
@@ -226,12 +253,67 @@ svg {
   align-items: center;
   font-size: 16px;
   font-weight: 700;
-  align-items: center;
-  justify-content: center;
   color: #fff;
+  border: none;
   border-radius: 50px;
   background: var(--black-color);
+  cursor: pointer;
+  font-family: inherit;
 }
+.top .post:hover {
+  background: rgba(15, 20, 25, 0.85);
+}
+.compose-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 8vh 16px 24px;
+  background: rgba(0, 0, 0, 0.45);
+}
+.compose-modal {
+  width: min(600px, 100%);
+  max-height: 84vh;
+  overflow-y: auto;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.25);
+}
+.compose-modal-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid #eff3f4;
+  background: #fff;
+}
+.compose-cancel {
+  min-width: 48px;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  color: #0f1419;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.compose-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f1419;
+}
+.compose-spacer {
+  width: 48px;
+}
+.compose-modal :deep(.composer) {
+  border-bottom: none;
+}
+
 .user {
   width: 90%;
   display: flex;

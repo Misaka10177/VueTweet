@@ -9,7 +9,10 @@ public class Trend {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 80)
     private String category;
+
+    @Column(nullable = false, length = 160)
     private String topic;
 
     public Long getId() { return id; }

@@ -1,41 +1,48 @@
 package com.twitter.controller;
 
-import org.springframework.http.ResponseEntity;
+import com.twitter.security.AuthPrincipal;
+import com.twitter.service.FollowService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 public class FollowingController {
+    private final FollowService followService;
 
-    private final List<String> followingList = new ArrayList<>();
+    public FollowingController(FollowService followService) {
+        this.followService = followService;
+    }
 
     @GetMapping("/following")
-    public Map<String, List<String>> getFollowing() {
+    public Map<String, List<String>> getFollowing(@AuthenticationPrincipal AuthPrincipal principal) {
         Map<String, List<String>> result = new HashMap<>();
-        result.put("list", followingList);
+        result.put("list", followService.following(principal.getUserId()));
         return result;
     }
 
     @PutMapping("/following")
-    public ResponseEntity<Map<String, String>> addFollowing(@RequestBody String userId) {
+    public Map<String, String> addFollowing(@RequestBody String targetId,
+                                            @AuthenticationPrincipal AuthPrincipal principal) {
         Map<String, String> result = new HashMap<>();
-        if (userId == null || userId.trim().isEmpty()) {
+        if (targetId == null || targetId.trim().isEmpty()) {
             result.put("status", "error");
-            return ResponseEntity.ok(result);
+            return result;
         }
-        userId = userId.trim();
-        if (userId.length() >= 20) {
-            result.put("status", "error");
-            return ResponseEntity.ok(result);
-        }
-        if (!followingList.contains(userId)) {
-            followingList.add(userId);
-        }
+        followService.follow(principal.getUserId(), targetId.trim());
         result.put("status", "success");
-        return ResponseEntity.ok(result);
+        return result;
+    }
+
+    @DeleteMapping("/following/{targetId}")
+    public Map<String, String> removeFollowing(@PathVariable String targetId,
+                                               @AuthenticationPrincipal AuthPrincipal principal) {
+        followService.unfollow(principal.getUserId(), targetId);
+        Map<String, String> result = new HashMap<>();
+        result.put("status", "success");
+        return result;
     }
 }

@@ -5,22 +5,23 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tweet_interaction", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"tweet_id", "user_id", "type"})
+    @UniqueConstraint(name = "uk_tweet_user_type", columnNames = {"tweet_id", "user_id", "type"})
 })
 public class TweetInteraction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "tweet_id")
+    @Column(name = "tweet_id", nullable = false)
     private Long tweetId;
 
-    @Column(name = "user_id")
+    @Column(name = "user_id", nullable = false, length = 50)
     private String userId;
 
+    @Column(nullable = false, length = 20)
     private String type;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     public Long getId() { return id; }

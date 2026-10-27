@@ -1,46 +1,32 @@
 package com.twitter.controller;
 
-import com.twitter.entity.User;
-import com.twitter.repo.UserRepo;
+import com.twitter.dto.CurrentUserDto;
+import com.twitter.dto.UserSummaryDto;
+import com.twitter.security.AuthPrincipal;
+import com.twitter.service.UserService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 public class UserController {
+    private final UserService userService;
 
-    private final UserRepo userRepo;
-
-    public UserController(UserRepo userRepo) {
-        this.userRepo = userRepo;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     @GetMapping("/users")
-    public List<Map<String, Object>> getUsers() {
-        List<User> users = userRepo.findAll();
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (User u : users) {
-            Map<String, Object> map = new LinkedHashMap<>();
-            map.put("id", u.getId());
-            map.put("name", u.getName());
-            map.put("profilePhoto", u.getProfilePhoto());
-            result.add(map);
-        }
-        return result;
+    public List<UserSummaryDto> getUsers() {
+        return userService.listUsers();
     }
 
     @GetMapping("/currentUser")
-    public Map<String, String> getCurrentUser(HttpServletRequest request) {
-        Map<String, String> result = new HashMap<>();
-        String userId = (String) request.getAttribute("userId");
-        User user = userRepo.findById(userId).orElse(null);
-        if (user != null) {
-            result.put("userId", user.getId());
-            result.put("username", user.getName());
-        }
-        return result;
+    public CurrentUserDto getCurrentUser(@AuthenticationPrincipal AuthPrincipal principal) {
+        return userService.currentUser(principal.getUserId());
     }
 
     @PostMapping("/checkUser")
@@ -52,8 +38,7 @@ public class UserController {
             result.put("message", "用户名不能为空");
             return result;
         }
-        boolean exists = userRepo.existsById(userName.trim());
-        if (exists) {
+        if (userService.exists(userName.trim())) {
             result.put("status", "success");
         } else {
             result.put("status", "error");

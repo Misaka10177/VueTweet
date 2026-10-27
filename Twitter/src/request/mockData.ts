@@ -149,7 +149,18 @@ export const mockResponses = {
   ],
   'GET /currentUser': { username: 'Misaka 10177', userId: 'Misaka10177' },
   'POST /checkUser': { status: 'success' },
-  'POST /login': { status: 'success', accessToken: 'mock-token-gh-pages' },
-  'POST /refresh': { accessToken: 'mock-token-gh-pages' },
-  'POST /logout': { status: 'success' },
+  'POST /auth/login': {
+    accessToken: 'mock-token-gh-pages',
+    tokenType: 'Bearer',
+    expiresIn: 86400,
+    user: { id: 'Misaka10177', name: 'Misaka 10177', profilePhoto: '/images/img.png' },
+  },
+  'POST /auth/refresh': {
+    accessToken: 'mock-token-gh-pages',
+    tokenType: 'Bearer',
+    expiresIn: 86400,
+    user: { id: 'Misaka10177', name: 'Misaka 10177', profilePhoto: '/images/img.png' },
+  },
+  'POST /auth/logout': { status: 'success' },
+  'GET /auth/sessions': [],
 }

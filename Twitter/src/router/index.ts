@@ -11,6 +11,7 @@ import tweetDetailView from '../view/tweetDetailView.vue'
 import userView from '../view/userView.vue'
 import BasicLayout from '@/layouts/BasicLayout.vue'
 import LoginView from '@/view/LoginView.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
   // history: createWebHistory(import.meta.env.BASE_URL),
@@ -42,12 +43,30 @@ const router = createRouter({
   ],
 })
 
-// router.beforeEach((to, from, next) => {
-//   if (to.meta.notRequiresAuth) {
-//     next()
-//   } else {
-//     next('/login')
-//   }
-// })
+router.beforeEach(async (to) => {
+  const auth = useAuthStore()
+
+  if (to.meta.notRequiresAuth) {
+    if (!auth.ready) {
+      await auth.ensureSession()
+    }
+    if (auth.isAuthenticated && to.path.startsWith('/join')) {
+      const redirect = typeof to.query.redirect === 'string'
+        && to.query.redirect.startsWith('/')
+        && !to.query.redirect.startsWith('//')
+        && !to.query.redirect.startsWith('/join')
+        ? to.query.redirect
+        : '/'
+      return { path: redirect }
+    }
+    return true
+  }
+
+  const authenticated = await auth.ensureSession()
+  if (!authenticated) {
+    return { path: '/join', query: { redirect: to.fullPath } }
+  }
+  return true
+})
 
 export default router

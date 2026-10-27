@@ -19,7 +19,7 @@
               <div class="avatar-col">
                 <div v-if="tweet.replyTo" class="thread-line-top"></div>
                 <div class="profile_photo">
-                  <img :src="base + tweet.author.profile_photo.replace(/^\//, '')" alt="" />
+                  <img :src="mediaUrl(tweet.author.profile_photo)" alt="" />
                 </div>
               </div>
               <div class="author-info">
@@ -35,7 +35,7 @@
             <div class="tweet-body">
               <div class="text">{{ tweet.text }}</div>
               <div class="images" v-if="tweet.images && tweet.images.length">
-                <img v-for="(img, i) in tweet.images" :key="i" :src="base + img" alt="" />
+                <img v-for="(img, i) in tweet.images" :key="i" :src="mediaUrl(img)" alt="" />
               </div>
               <div class="meta">
                 <span class="time">{{ formatTime(tweet.publishTime) }}</span>
@@ -132,13 +132,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useUserInfoStore, useTweetStore } from '@/stores/store'
+import { useTweetStore } from '@/stores/store'
 import SearchBar from './components/SideBar/SideBarComponents/SearchBar.vue'
 import SubscribePremium from './components/SideBar/SideBarComponents/SubscribePremium.vue'
 import RecommendFollowing from './components/SideBar/SideBarComponents/RecommendFollowing.vue'
 import NavigationBar from './components/SideBar/SideBarComponents/NavigationBar.vue'
 import TweetShow from './components/TweetShow.vue'
 import type { Tweet } from '@/types'
+import { mediaUrl } from '@/utils/media'
 import {
   getTweet,
   getReplies,
@@ -149,7 +150,6 @@ import {
 } from '@/request/api.js'
 
 const route = useRoute()
-const userInfoStore = useUserInfoStore()
 const tweetStore = useTweetStore()
 const base = import.meta.env.BASE_URL
 const tweet = ref<Tweet | null>(null)
@@ -234,7 +234,7 @@ function formatTime(time: string) {
 
 function submitReply() {
   const id = route.params.id as string
-  addReply(id, { userId: userInfoStore.userId, text: replyText.value }).then(() => {
+  addReply(id, { text: replyText.value }).then(() => {
     replyText.value = ''
     getReplies(id).then((res: Tweet[]) => {
       comments.value = res
@@ -377,8 +377,15 @@ main {
   margin-bottom: 16px;
   white-space: pre-wrap;
 }
+.tweet-body .images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 .tweet-body .images img {
-  max-width: 60%;
+  max-width: 100%;
+  max-height: 510px;
+  object-fit: contain;
   border-radius: 16px;
   margin-bottom: 16px;
 }
