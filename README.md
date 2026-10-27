@@ -2,7 +2,7 @@
 
 本项目是一个仿 X / Twitter 的全栈练习项目，仅用于学习与技术交流，不用于任何商业用途。
 
-AI真是太好用了（
+大肥鱼也是不白吃饭（
 
 ## 技术构成
 
@@ -86,14 +86,6 @@ npm run dev
 ```text
 backend/src/main/resources/application.properties
 ```
-
-本地演示账号：
-
-```text
-用户名：deepseek
-密码：  deepseek123
-```
-大肥鱼也是不白吃饭（
 
 ## 预览
 
