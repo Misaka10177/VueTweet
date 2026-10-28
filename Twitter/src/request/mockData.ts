@@ -170,10 +170,38 @@ const mockLogin: AuthResponse = {
 const mockMe: Me = { id: 'Misaka10177', name: 'Misaka 10177', avatarUrl: '/images/img.png' }
 
 const followUsers: FollowUser[] = [
-  { id: 'Misaka', name: 'Misaka Mikoto', avatarUrl: avatar, following: false, self: false },
-  { id: 'oO0Eve0Oo', name: 'Eve', avatarUrl: avatar, following: true, self: false },
-  { id: 'akakura1341', name: '赤倉🧸', avatarUrl: avatar, following: false, self: false },
-  { id: 'claude', name: 'Claude', avatarUrl: avatar, following: false, self: false },
+  {
+    id: 'Misaka',
+    name: 'Misaka Mikoto',
+    avatarUrl: avatar,
+    following: false,
+    followsYou: true,
+    self: false,
+  },
+  {
+    id: 'oO0Eve0Oo',
+    name: 'Eve',
+    avatarUrl: avatar,
+    following: true,
+    followsYou: true,
+    self: false,
+  },
+  {
+    id: 'akakura1341',
+    name: '赤倉🧸',
+    avatarUrl: avatar,
+    following: false,
+    followsYou: false,
+    self: false,
+  },
+  {
+    id: 'claude',
+    name: 'Claude',
+    avatarUrl: avatar,
+    following: false,
+    followsYou: true,
+    self: false,
+  },
 ]
 const followPage: FollowPage = { items: followUsers, nextCursor: null, hasMore: false }
 const emptyFollowPage: FollowPage = { items: [], nextCursor: null, hasMore: false }
@@ -186,6 +214,7 @@ function profile(
   followerCount: number,
   tweetCount: number,
   viewerFollowing = false,
+  followsYou = false,
 ): UserProfile {
   return {
     id,
@@ -195,16 +224,17 @@ function profile(
     followerCount,
     tweetCount,
     viewerFollowing,
+    followsYou,
     self,
   }
 }
 
 const mockProfile = profile('Misaka10177', 'Misaka 10177', true, 3, 12, 6)
 const otherProfiles: Record<string, UserProfile> = {
-  Misaka: profile('Misaka', 'Misaka Mikoto', false, 5, 88, 1),
-  oO0Eve0Oo: profile('oO0Eve0Oo', 'Eve', false, 2, 41, 1, true),
+  Misaka: profile('Misaka', 'Misaka Mikoto', false, 5, 88, 1, false, true),
+  oO0Eve0Oo: profile('oO0Eve0Oo', 'Eve', false, 2, 41, 1, true, true),
   akakura1341: profile('akakura1341', '赤倉🧸', false, 7, 120, 1),
-  claude: profile('claude', 'Claude', false, 1, 9, 0),
+  claude: profile('claude', 'Claude', false, 1, 9, 0, false, true),
 }
 
 function followState(userId: string, following: boolean): FollowState {
@@ -213,6 +243,7 @@ function followState(userId: string, following: boolean): FollowState {
     targetId: userId,
     following,
     followerCount: base + (following ? 1 : 0),
+    followsYou: otherProfiles[userId]?.followsYou ?? false,
   }
 }
 

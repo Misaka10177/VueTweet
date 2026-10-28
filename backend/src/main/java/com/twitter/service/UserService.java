@@ -43,11 +43,13 @@ public class UserService {
         boolean self = user.getId().equals(viewerId);
         boolean viewerFollowing = !self && viewerId != null
                 && followRepo.existsByFollowerIdAndFolloweeId(viewerId, user.getId());
+        boolean followsYou = !self && viewerId != null
+                && followRepo.existsByFollowerIdAndFolloweeId(user.getId(), viewerId);
         return new UserProfileDto(user.getId(), user.getName(), user.getProfilePhoto(),
                 followRepo.countByFollowerId(user.getId()),
                 followRepo.countByFolloweeId(user.getId()),
                 tweetRepo.countByAuthorIdAndReplyToIdIsNullAndDeletedAtIsNull(user.getId()),
-                viewerFollowing, self);
+                viewerFollowing, followsYou, self);
     }
 
     @Transactional(readOnly = true)

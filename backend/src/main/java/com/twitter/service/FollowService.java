@@ -60,10 +60,12 @@ public class FollowService {
     public List<FollowUserDto> suggestions(String viewerId, int limit) {
         int size = limit <= 0 ? 5 : Math.min(limit, MAX_PAGE_SIZE);
         List<User> users = userRepo.findSuggestions(viewerId, PageRequest.of(0, size));
+        List<String> userIds = users.stream().map(User::getId).collect(Collectors.toList());
+        Set<String> followsViewer = viewerFollowersAmong(viewerId, userIds);
         List<FollowUserDto> result = new ArrayList<>();
         for (User user : users) {
-            result.add(new FollowUserDto(user.getId(), user.getName(),
-                    user.getProfilePhoto(), false, false));
+            result.add(new FollowUserDto(user.getId(), user.getName(), user.getProfilePhoto(),
+                    false, followsViewer.contains(user.getId()), false));
         }
         return result;
     }
@@ -75,7 +77,8 @@ public class FollowService {
             if (active) {
                 throw new ApiException(HttpStatus.BAD_REQUEST, "FOLLOW_SELF", "不能关注自己");
             }
-            return new FollowStateDto(target, false, followRepo.countByFolloweeId(target));
+            return new FollowStateDto(target, false,
+                    followRepo.countByFolloweeId(target), false);
         }
         requireUser(target);
 
@@ -85,7 +88,9 @@ public class FollowService {
         } else {
             followRepo.deleteOne(viewerId, target);
         }
-        return new FollowStateDto(target, active, followRepo.countByFolloweeId(target));
+        boolean followsYou = followRepo.existsByFollowerIdAndFolloweeId(target, viewerId);
+        return new FollowStateDto(target, active,
+                followRepo.countByFolloweeId(target), followsYou);
     }
 
     private FollowPageDto page(boolean followingDirection, String userId, String viewerId,
@@ -130,6 +135,7 @@ public class FollowService {
             users.put(user.getId(), user);
         }
         Set<String> viewerFollowing = viewerFollowsAmong(viewerId, userIds);
+        Set<String> viewerFollowers = viewerFollowersAmong(viewerId, userIds);
 
         List<FollowUserDto> items = new ArrayList<>();
         for (String id : userIds) {
@@ -139,7 +145,7 @@ public class FollowService {
             }
             items.add(new FollowUserDto(user.getId(), user.getName(),
                     user.getProfilePhoto(), viewerFollowing.contains(id),
-                    id.equals(viewerId)));
+                    viewerFollowers.contains(id), id.equals(viewerId)));
         }
         return new FollowPageDto(items, nextCursor, hasMore);
     }
@@ -149,6 +155,13 @@ public class FollowService {
             return Collections.emptySet();
         }
         return new HashSet<>(followRepo.findFolloweeIdsAmong(viewerId, userIds));
+    }
+
+    private Set<String> viewerFollowersAmong(String viewerId, Collection<String> userIds) {
+        if (viewerId == null || userIds.isEmpty()) {
+            return Collections.emptySet();
+        }
+        return new HashSet<>(followRepo.findFollowerIdsAmong(viewerId, userIds));
     }
 
     private User requireUser(String userId) {

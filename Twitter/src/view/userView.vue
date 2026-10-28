@@ -34,7 +34,14 @@
                   />
                 </div>
               </div>
-              <div class="display-name">{{ profile.name }}</div>
+              <div class="display-name-row">
+                <div class="display-name">{{ profile.name }}</div>
+                <FollowRelationBadge
+                  :following="profile.viewerFollowing"
+                  :follows-you="profile.followsYou"
+                  :self="profile.self"
+                />
+              </div>
               <div class="handle">@{{ profile.id }}</div>
               <div class="follow-info">
                 <button type="button" class="follow-stat" @click="openList('following')">
@@ -91,6 +98,7 @@ import { mediaUrl } from '@/utils/media'
 import TabControl from './components/TabControl.vue'
 import TweetShow from './components/TweetShow.vue'
 import FollowButton from './components/FollowButton.vue'
+import FollowRelationBadge from './components/FollowRelationBadge.vue'
 import FollowListModal from './components/FollowListModal.vue'
 import SearchBar from './components/SideBar/SideBarComponents/SearchBar.vue'
 import SubscribePremium from './components/SideBar/SideBarComponents/SubscribePremium.vue'
@@ -196,6 +204,7 @@ function onFollowChange(state: FollowState) {
   profile.value = {
     ...profile.value,
     viewerFollowing: state.following,
+    followsYou: state.followsYou,
     followerCount: state.followerCount,
   }
 }
@@ -209,7 +218,11 @@ function onListFollowChange(state: FollowState) {
     ...profile.value,
     followingCount,
     ...(state.targetId === profile.value.id
-      ? { viewerFollowing: state.following, followerCount: state.followerCount }
+      ? {
+          viewerFollowing: state.following,
+          followsYou: state.followsYou,
+          followerCount: state.followerCount,
+        }
       : {}),
   }
 }
@@ -337,10 +350,18 @@ main {
 .edit-btn:hover {
   background: rgba(15, 20, 25, 0.06);
 }
+.display-name-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
 .display-name {
   font-size: 20px;
   font-weight: 700;
-  margin-bottom: 4px;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .handle {
   font-size: 15px;

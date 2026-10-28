@@ -13,7 +13,14 @@
           <div v-for="user in users" :key="user.id" class="row" @click="goUser(user.id)">
             <img :src="mediaUrl(user.avatarUrl) || fallbackAvatar" :alt="user.name" />
             <div class="meta">
-              <div class="name">{{ user.name }}</div>
+              <div class="name-row">
+                <span class="name">{{ user.name }}</span>
+                <FollowRelationBadge
+                  :following="user.following"
+                  :follows-you="user.followsYou"
+                  :self="user.self"
+                />
+              </div>
               <div class="handle">@{{ user.id }}</div>
             </div>
             <FollowButton
@@ -45,6 +52,7 @@ import type { FollowPage, FollowState, FollowUser } from '@/types'
 import { getFollowers, getFollowing } from '@/request/api'
 import { mediaUrl } from '@/utils/media'
 import FollowButton from '@/view/components/FollowButton.vue'
+import FollowRelationBadge from '@/view/components/FollowRelationBadge.vue'
 
 const props = defineProps<{
   open: boolean
@@ -105,6 +113,7 @@ function goUser(userId: string) {
 
 function onFollowChange(user: FollowUser, state: FollowState) {
   user.following = state.following
+  user.followsYou = state.followsYou
   emit('follow-change', state)
 }
 
@@ -208,6 +217,12 @@ h2 {
 }
 .meta {
   flex: 1;
+  min-width: 0;
+}
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   min-width: 0;
 }
 .name {

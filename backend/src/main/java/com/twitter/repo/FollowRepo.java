@@ -23,6 +23,11 @@ public interface FollowRepo extends JpaRepository<Follow, Long> {
     List<String> findFolloweeIdsAmong(@Param("followerId") String followerId,
                                       @Param("followeeIds") Collection<String> followeeIds);
 
+    @Query("select f.followerId from Follow f where f.followeeId = :followeeId " +
+            "and f.followerId in :followerIds")
+    List<String> findFollowerIdsAmong(@Param("followeeId") String followeeId,
+                                      @Param("followerIds") Collection<String> followerIds);
+
     @Query("select f from Follow f where f.followerId = :userId " +
             "order by f.createdAt desc, f.id desc")
     List<Follow> findFollowingFirst(@Param("userId") String userId, Pageable pageable);

@@ -8,7 +8,14 @@
               <img :src="mediaUrl(user.avatarUrl) || fallbackAvatar" :alt="user.name" />
             </div>
             <div class="name-id">
-              <div class="name">{{ user.name }}</div>
+              <div class="name-row">
+                <span class="name">{{ user.name }}</span>
+                <FollowRelationBadge
+                  :following="user.following"
+                  :follows-you="user.followsYou"
+                  :self="user.self"
+                />
+              </div>
               <div class="id">@{{ user.id }}</div>
             </div>
           </div>
@@ -35,6 +42,7 @@ import type { FollowState, FollowUser } from '@/types'
 import { getFollowSuggestions } from '@/request/api'
 import { mediaUrl } from '@/utils/media'
 import FollowButton from '@/view/components/FollowButton.vue'
+import FollowRelationBadge from '@/view/components/FollowRelationBadge.vue'
 
 const router = useRouter()
 const fallbackAvatar = `${import.meta.env.BASE_URL}images/img.png`
@@ -58,6 +66,7 @@ function goUser(userId: string) {
 
 function onFollowChange(user: FollowUser, state: FollowState) {
   user.following = state.following
+  user.followsYou = state.followsYou
 }
 
 onMounted(load)
@@ -101,6 +110,12 @@ img {
   flex-direction: column;
   justify-content: space-around;
   margin-left: 10px;
+  min-width: 0;
+}
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   min-width: 0;
 }
 .name {

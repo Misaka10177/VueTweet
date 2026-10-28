@@ -105,6 +105,7 @@ export type FollowUser = {
   name: string
   avatarUrl: string | null
   following: boolean
+  followsYou: boolean
   self: boolean
 }
 
@@ -118,6 +119,7 @@ export type FollowState = {
   targetId: string
   following: boolean
   followerCount: number
+  followsYou: boolean
 }
 
 export type UserProfile = {
@@ -128,6 +130,7 @@ export type UserProfile = {
   followerCount: number
   tweetCount: number
   viewerFollowing: boolean
+  followsYou: boolean
   self: boolean
 }
 

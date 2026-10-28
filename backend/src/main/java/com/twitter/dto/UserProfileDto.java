@@ -8,11 +8,12 @@ public class UserProfileDto {
     private final long followerCount;
     private final long tweetCount;
     private final boolean viewerFollowing;
+    private final boolean followsYou;
     private final boolean self;
 
     public UserProfileDto(String id, String name, String avatarUrl,
                           long followingCount, long followerCount, long tweetCount,
-                          boolean viewerFollowing, boolean self) {
+                          boolean viewerFollowing, boolean followsYou, boolean self) {
         this.id = id;
         this.name = name;
         this.avatarUrl = avatarUrl;
@@ -20,6 +21,7 @@ public class UserProfileDto {
         this.followerCount = followerCount;
         this.tweetCount = tweetCount;
         this.viewerFollowing = viewerFollowing;
+        this.followsYou = followsYou;
         this.self = self;
     }
 
@@ -30,5 +32,6 @@ public class UserProfileDto {
     public long getFollowerCount() { return followerCount; }
     public long getTweetCount() { return tweetCount; }
     public boolean isViewerFollowing() { return viewerFollowing; }
+    public boolean isFollowsYou() { return followsYou; }
     public boolean isSelf() { return self; }
 }
