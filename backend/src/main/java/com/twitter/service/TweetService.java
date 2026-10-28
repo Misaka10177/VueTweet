@@ -22,6 +22,7 @@ import com.twitter.repo.TweetMediaRepo;
 import com.twitter.repo.TweetRepo;
 import com.twitter.repo.UserRepo;
 import com.twitter.util.Cursor;
+import com.twitter.util.SearchQuery;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -114,6 +115,22 @@ public class TweetService {
         }
         return toDto(tweet, media.getOrDefault(tweet.getId(), Collections.emptyList()),
                 flags, replyTo, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public TweetPageDto searchTweets(String rawQuery, String userId, String cursorToken, int limit) {
+        String query = SearchQuery.normalize(rawQuery);
+        if (query.isEmpty()) {
+            return new TweetPageDto(Collections.emptyList(), null, false);
+        }
+        int size = normalizeLimit(limit);
+        Cursor cursor = parseCursor(cursorToken);
+        Pageable pageable = PageRequest.of(0, size + 1);
+        String pattern = SearchQuery.likePattern(query);
+        List<Tweet> rows = cursor == null
+                ? tweetRepo.searchFirst(pattern, pageable)
+                : tweetRepo.searchAfter(pattern, cursor.getCreatedAt(), cursor.getId(), pageable);
+        return toTweetPage(rows, size, userId);
     }
 
     @Transactional(readOnly = true)

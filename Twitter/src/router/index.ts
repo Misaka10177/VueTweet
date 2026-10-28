@@ -9,6 +9,7 @@ import grokView from '../view/grokView.vue'
 import bookmarksView from '../view/bookmarksView.vue'
 import tweetDetailView from '../view/tweetDetailView.vue'
 import userView from '../view/userView.vue'
+import SearchView from '../view/SearchView.vue'
 import BasicLayout from '@/layouts/BasicLayout.vue'
 import LoginView from '@/view/LoginView.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -38,6 +39,7 @@ const router = createRouter({
         { path: 'bookmarks', component: bookmarksView },
         { path: 'tweet/:id', component: tweetDetailView },
         { path: 'user/:id?', component: userView },
+        { path: 'search', component: SearchView },
       ],
     },
   ],

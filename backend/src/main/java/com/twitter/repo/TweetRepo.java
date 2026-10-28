@@ -40,6 +40,26 @@ public interface TweetRepo extends JpaRepository<Tweet, Long> {
                               Pageable pageable);
 
     @EntityGraph(attributePaths = "author")
+    @Query("select t from Tweet t where t.deletedAt is null and (" +
+            "lower(t.text) like :pattern escape '!' " +
+            "or lower(t.author.name) like :pattern escape '!' " +
+            "or lower(t.author.id) like :pattern escape '!') " +
+            "order by t.createdAt desc, t.id desc")
+    List<Tweet> searchFirst(@Param("pattern") String pattern, Pageable pageable);
+
+    @EntityGraph(attributePaths = "author")
+    @Query("select t from Tweet t where t.deletedAt is null and (" +
+            "lower(t.text) like :pattern escape '!' " +
+            "or lower(t.author.name) like :pattern escape '!' " +
+            "or lower(t.author.id) like :pattern escape '!') " +
+            "and (t.createdAt < :cursorTime or (t.createdAt = :cursorTime and t.id < :cursorId)) " +
+            "order by t.createdAt desc, t.id desc")
+    List<Tweet> searchAfter(@Param("pattern") String pattern,
+                            @Param("cursorTime") LocalDateTime cursorTime,
+                            @Param("cursorId") long cursorId,
+                            Pageable pageable);
+
+    @EntityGraph(attributePaths = "author")
     @Query("select t from Tweet t where t.replyToId is null and t.deletedAt is null " +
             "and t.author.id in :authorIds order by t.createdAt desc, t.id desc")
     List<Tweet> findFollowingFeedFirst(@Param("authorIds") Collection<String> authorIds,

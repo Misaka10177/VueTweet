@@ -9,6 +9,7 @@ import com.twitter.exception.ApiException;
 import com.twitter.repo.FollowRepo;
 import com.twitter.repo.UserRepo;
 import com.twitter.util.Cursor;
+import com.twitter.util.SearchQuery;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -66,6 +67,31 @@ public class FollowService {
         for (User user : users) {
             result.add(new FollowUserDto(user.getId(), user.getName(), user.getProfilePhoto(),
                     false, followsViewer.contains(user.getId()), false));
+        }
+        return result;
+    }
+
+    @Transactional(readOnly = true)
+    public List<FollowUserDto> searchUsers(String rawQuery, String viewerId, int limit) {
+        String query = SearchQuery.normalize(rawQuery);
+        if (query.isEmpty()) {
+            return Collections.emptyList();
+        }
+        int size = limit <= 0 ? 20 : Math.min(limit, MAX_PAGE_SIZE);
+        List<User> users = userRepo.search(query, SearchQuery.likePattern(query),
+                PageRequest.of(0, size));
+        if (users.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<String> userIds = users.stream().map(User::getId).collect(Collectors.toList());
+        Set<String> viewerFollowing = viewerFollowsAmong(viewerId, userIds);
+        Set<String> viewerFollowers = viewerFollowersAmong(viewerId, userIds);
+        List<FollowUserDto> result = new ArrayList<>();
+        for (User user : users) {
+            result.add(new FollowUserDto(user.getId(), user.getName(), user.getProfilePhoto(),
+                    viewerFollowing.contains(user.getId()),
+                    viewerFollowers.contains(user.getId()),
+                    user.getId().equals(viewerId)));
         }
         return result;
     }

@@ -6,6 +6,7 @@ import type {
   FollowState,
   FollowUser,
   Me,
+  SearchOverview,
   Trend,
   TweetItem,
   TweetMedia,
@@ -260,6 +261,13 @@ const trends: Trend[] = [
   { category: '体育', topic: '#NBA' },
 ]
 
+const mockSearchOverview: SearchOverview = {
+  query: 'Vue',
+  users: followUsers.slice(0, 3),
+  tweets: feedPage,
+  topics: trends.slice(0, 5),
+}
+
 export const mockResponses = {
   'GET /tweets': feedPage,
   'POST /tweets': tweet1,
@@ -281,6 +289,10 @@ export const mockResponses = {
   'PUT /tweets/1/bookmark': action('1', { bookmarks: 11 }, 'bookmarked'),
   'DELETE /tweets/1/bookmark': action('1', { bookmarks: 10 }, 'bookmarked'),
   'GET /trends': trends,
+  'GET /search': mockSearchOverview,
+  'GET /search/users': followUsers,
+  'GET /search/tweets': feedPage,
+  'GET /search/topics': trends,
   'GET /me': mockMe,
   'GET /me/bookmarks': { items: [tweet1], nextCursor: null, hasMore: false },
   'GET /me/likes': { items: [tweet2], nextCursor: null, hasMore: false },

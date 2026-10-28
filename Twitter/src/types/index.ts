@@ -134,6 +134,13 @@ export type UserProfile = {
   self: boolean
 }
 
+export type SearchOverview = {
+  query: string
+  users: FollowUser[]
+  tweets: TweetPage
+  topics: Trend[]
+}
+
 export type CheckUserResponse = {
   status: 'success' | 'error'
   message?: string

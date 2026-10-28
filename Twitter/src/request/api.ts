@@ -8,6 +8,7 @@ import type {
   FollowState,
   FollowUser,
   Me,
+  SearchOverview,
   Trend,
   TweetItem,
   TweetPage,
@@ -62,6 +63,22 @@ export const unbookmark = (tweetId: string): Promise<ActionState> =>
   del(`/tweets/${tweetId}/bookmark`)
 
 export const getTrends = (): Promise<Trend[]> => get('/trends')
+
+export const getSearchOverview = (query: string): Promise<SearchOverview> =>
+  get('/search', { q: query })
+
+export const searchUsers = (query: string, limit = 20): Promise<FollowUser[]> =>
+  get('/search/users', { q: query, limit })
+
+export const searchTweets = (
+  query: string,
+  cursor?: string | null,
+  limit = 20,
+): Promise<TweetPage> =>
+  get('/search/tweets', { q: query, ...pageParams(cursor, limit) })
+
+export const searchTopics = (query: string, limit = 20): Promise<Trend[]> =>
+  get('/search/topics', { q: query, limit })
 
 export const getMe = (): Promise<Me> => get('/me')
 
