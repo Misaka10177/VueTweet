@@ -19,17 +19,17 @@
           :to="tab.to || '/'"
           v-for="(tab, index) in nav_list"
           :key="index"
-          :class="{ nav_now: tab.to == $route.path }"
+          :class="{ nav_now: isNavActive(tab.to) }"
         >
           <div class="tab">
             <div>
               <div class="icon">
                 <svg
-                  :viewBox="(tab.to == $route.path ? tab.viewBox_fill : tab.viewBox) || '0 0 24 24'"
+                  :viewBox="(isNavActive(tab.to) ? tab.viewBox_fill : tab.viewBox) || '0 0 24 24'"
                   aria-hidden="true"
                 >
                   <g>
-                    <path :d="tab.to == $route.path ? tab.icon_fill : tab.icon"></path>
+                    <path :d="isNavActive(tab.to) ? tab.icon_fill : tab.icon"></path>
                   </g>
                 </svg>
               </div>
@@ -164,6 +164,15 @@ const profilePhoto = computed(
 )
 const showComposer = ref(false)
 const tweetStore = useTweetStore()
+
+function isNavActive(to?: string) {
+  if (!to) return false
+  const path = router.currentRoute.value.path
+  if (to === '/user') {
+    return path === '/user' || path.startsWith('/user/')
+  }
+  return path === to
+}
 
 function onPosted(tweet: TweetItem) {
   tweetStore.prependTweet(tweet)

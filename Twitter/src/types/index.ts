@@ -100,6 +100,37 @@ export type Me = {
   avatarUrl: string | null
 }
 
+export type FollowUser = {
+  id: string
+  name: string
+  avatarUrl: string | null
+  following: boolean
+  self: boolean
+}
+
+export type FollowPage = {
+  items: FollowUser[]
+  nextCursor: string | null
+  hasMore: boolean
+}
+
+export type FollowState = {
+  targetId: string
+  following: boolean
+  followerCount: number
+}
+
+export type UserProfile = {
+  id: string
+  name: string
+  avatarUrl: string | null
+  followingCount: number
+  followerCount: number
+  tweetCount: number
+  viewerFollowing: boolean
+  self: boolean
+}
+
 export type CheckUserResponse = {
   status: 'success' | 'error'
   message?: string

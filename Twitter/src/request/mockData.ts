@@ -2,12 +2,16 @@
 import type {
   ActionState,
   AuthResponse,
+  FollowPage,
+  FollowState,
+  FollowUser,
   Me,
   Trend,
   TweetItem,
   TweetMedia,
   TweetPage,
   TweetStats,
+  UserProfile,
 } from '@/types'
 
 const avatar = '/images/img.png'
@@ -165,6 +169,53 @@ const mockLogin: AuthResponse = {
 
 const mockMe: Me = { id: 'Misaka10177', name: 'Misaka 10177', avatarUrl: '/images/img.png' }
 
+const followUsers: FollowUser[] = [
+  { id: 'Misaka', name: 'Misaka Mikoto', avatarUrl: avatar, following: false, self: false },
+  { id: 'oO0Eve0Oo', name: 'Eve', avatarUrl: avatar, following: true, self: false },
+  { id: 'akakura1341', name: '赤倉🧸', avatarUrl: avatar, following: false, self: false },
+  { id: 'claude', name: 'Claude', avatarUrl: avatar, following: false, self: false },
+]
+const followPage: FollowPage = { items: followUsers, nextCursor: null, hasMore: false }
+const emptyFollowPage: FollowPage = { items: [], nextCursor: null, hasMore: false }
+
+function profile(
+  id: string,
+  name: string,
+  self: boolean,
+  followingCount: number,
+  followerCount: number,
+  tweetCount: number,
+  viewerFollowing = false,
+): UserProfile {
+  return {
+    id,
+    name,
+    avatarUrl: avatar,
+    followingCount,
+    followerCount,
+    tweetCount,
+    viewerFollowing,
+    self,
+  }
+}
+
+const mockProfile = profile('Misaka10177', 'Misaka 10177', true, 3, 12, 6)
+const otherProfiles: Record<string, UserProfile> = {
+  Misaka: profile('Misaka', 'Misaka Mikoto', false, 5, 88, 1),
+  oO0Eve0Oo: profile('oO0Eve0Oo', 'Eve', false, 2, 41, 1, true),
+  akakura1341: profile('akakura1341', '赤倉🧸', false, 7, 120, 1),
+  claude: profile('claude', 'Claude', false, 1, 9, 0),
+}
+
+function followState(userId: string, following: boolean): FollowState {
+  const base = otherProfiles[userId]?.followerCount ?? 0
+  return {
+    targetId: userId,
+    following,
+    followerCount: base + (following ? 1 : 0),
+  }
+}
+
 const trends: Trend[] = [
   { category: '中国香港特别行政区', topic: 'LING NIVEA BRAND FRIEND' },
   { category: '台湾', topic: '#skywongravee' },
@@ -204,6 +255,38 @@ export const mockResponses = {
   'GET /me/likes': { items: [tweet2], nextCursor: null, hasMore: false },
   'GET /users/Misaka10177/tweets': { items: [tweet1], nextCursor: null, hasMore: false },
   'GET /users/Misaka10177/replies': { items: [reply1], nextCursor: null, hasMore: false },
+  'GET /users/Misaka10177': mockProfile,
+  'GET /users/Misaka10177/followers': followPage,
+  'GET /users/Misaka10177/following': followPage,
+  'GET /users/suggestions': followUsers,
+  'GET /users/Misaka': otherProfiles.Misaka,
+  'GET /users/Misaka/tweets': { items: [tweet1], nextCursor: null, hasMore: false },
+  'GET /users/Misaka/replies': { items: [reply1], nextCursor: null, hasMore: false },
+  'GET /users/Misaka/followers': followPage,
+  'GET /users/Misaka/following': followPage,
+  'GET /users/oO0Eve0Oo': otherProfiles.oO0Eve0Oo,
+  'GET /users/oO0Eve0Oo/tweets': { items: [tweet2], nextCursor: null, hasMore: false },
+  'GET /users/oO0Eve0Oo/replies': { items: [reply2], nextCursor: null, hasMore: false },
+  'GET /users/oO0Eve0Oo/followers': followPage,
+  'GET /users/oO0Eve0Oo/following': followPage,
+  'GET /users/akakura1341': otherProfiles.akakura1341,
+  'GET /users/akakura1341/tweets': { items: [tweet3], nextCursor: null, hasMore: false },
+  'GET /users/akakura1341/replies': emptyPage,
+  'GET /users/akakura1341/followers': emptyFollowPage,
+  'GET /users/akakura1341/following': emptyFollowPage,
+  'GET /users/claude': otherProfiles.claude,
+  'GET /users/claude/tweets': emptyPage,
+  'GET /users/claude/replies': emptyPage,
+  'GET /users/claude/followers': emptyFollowPage,
+  'GET /users/claude/following': emptyFollowPage,
+  'PUT /users/Misaka/follow': followState('Misaka', true),
+  'DELETE /users/Misaka/follow': followState('Misaka', false),
+  'PUT /users/oO0Eve0Oo/follow': followState('oO0Eve0Oo', true),
+  'DELETE /users/oO0Eve0Oo/follow': followState('oO0Eve0Oo', false),
+  'PUT /users/akakura1341/follow': followState('akakura1341', true),
+  'DELETE /users/akakura1341/follow': followState('akakura1341', false),
+  'PUT /users/claude/follow': followState('claude', true),
+  'DELETE /users/claude/follow': followState('claude', false),
   'POST /checkUser': { status: 'success' },
   'POST /auth/login': mockLogin,
   'POST /auth/refresh': mockLogin,

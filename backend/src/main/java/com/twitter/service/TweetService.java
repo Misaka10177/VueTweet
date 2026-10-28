@@ -16,6 +16,7 @@ import com.twitter.entity.TweetMediaId;
 import com.twitter.entity.User;
 import com.twitter.exception.ApiException;
 import com.twitter.model.InteractionType;
+import com.twitter.repo.FollowRepo;
 import com.twitter.repo.TweetInteractionRepo;
 import com.twitter.repo.TweetMediaRepo;
 import com.twitter.repo.TweetRepo;
@@ -51,16 +52,19 @@ public class TweetService {
     private final UserRepo userRepo;
     private final TweetInteractionRepo interactionRepo;
     private final TweetMediaRepo mediaRepo;
+    private final FollowRepo followRepo;
     private final FileStorageService fileStorageService;
 
     public TweetService(TweetRepo tweetRepo, UserRepo userRepo,
                         TweetInteractionRepo interactionRepo,
                         TweetMediaRepo mediaRepo,
+                        FollowRepo followRepo,
                         FileStorageService fileStorageService) {
         this.tweetRepo = tweetRepo;
         this.userRepo = userRepo;
         this.interactionRepo = interactionRepo;
         this.mediaRepo = mediaRepo;
+        this.followRepo = followRepo;
         this.fileStorageService = fileStorageService;
     }
 
@@ -69,13 +73,27 @@ public class TweetService {
     // -----------------------------------------------------------------------
 
     @Transactional(readOnly = true)
-    public TweetPageDto getFeed(String userId, String cursorToken, int limit) {
+    public TweetPageDto getFeed(String userId, String cursorToken, int limit, boolean followingOnly) {
         int size = normalizeLimit(limit);
         Cursor cursor = parseCursor(cursorToken);
         Pageable pageable = PageRequest.of(0, size + 1);
+
+        if (!followingOnly) {
+            List<Tweet> rows = cursor == null
+                    ? tweetRepo.findFeedFirst(pageable)
+                    : tweetRepo.findFeedAfter(cursor.getCreatedAt(), cursor.getId(), pageable);
+            return toTweetPage(rows, size, userId);
+        }
+
+        // The following timeline contains the viewer's own posts as well.
+        List<String> authorIds = new ArrayList<>(followRepo.findFolloweeIdsByFollowerId(userId));
+        if (!authorIds.contains(userId)) {
+            authorIds.add(userId);
+        }
         List<Tweet> rows = cursor == null
-                ? tweetRepo.findFeedFirst(pageable)
-                : tweetRepo.findFeedAfter(cursor.getCreatedAt(), cursor.getId(), pageable);
+                ? tweetRepo.findFollowingFeedFirst(authorIds, pageable)
+                : tweetRepo.findFollowingFeedAfter(authorIds, cursor.getCreatedAt(),
+                        cursor.getId(), pageable);
         return toTweetPage(rows, size, userId);
     }
 

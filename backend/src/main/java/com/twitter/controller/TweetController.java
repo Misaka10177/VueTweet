@@ -31,8 +31,10 @@ public class TweetController {
     public TweetPageDto getTweets(
             @RequestParam(value = "cursor", required = false) String cursor,
             @RequestParam(value = "limit", defaultValue = "20") int limit,
+            @RequestParam(value = "feed", required = false) String feed,
             @AuthenticationPrincipal AuthPrincipal principal) {
-        return tweetService.getFeed(userId(principal), cursor, limit);
+        return tweetService.getFeed(userId(principal), cursor, limit,
+                "following".equalsIgnoreCase(feed));
     }
 
     @GetMapping("/tweets/{tweetId}")

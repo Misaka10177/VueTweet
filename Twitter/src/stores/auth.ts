@@ -4,6 +4,7 @@ import axios from 'axios'
 
 import { API_BASE } from '@/config'
 import type { ApiError, AuthResponse, AuthUser } from '@/types'
+import { useFollowStore } from '@/stores/follow'
 
 const isMock = import.meta.env.PROD
 const REFRESH_MARGIN_MS = 5_000
@@ -83,6 +84,7 @@ export const useAuthStore = defineStore('auth', () => {
     expiresAt.value = 0
     user.value = null
     ready.value = true
+    useFollowStore().reset()
   }
 
   function clearSession(broadcast = true) {

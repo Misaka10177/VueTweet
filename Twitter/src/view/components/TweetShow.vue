@@ -3,7 +3,7 @@
     <div class="repost"></div>
     <div class="box" @click="goDetail">
       <div class="avatar-col">
-        <div class="profile_photo">
+        <div class="profile_photo" @click.stop="goUser">
           <img :src="avatarUrl" alt="" />
         </div>
         <div v-if="isQuoted" class="thread-line"></div>
@@ -11,7 +11,7 @@
       <div class="container">
         <div class="auther_name">
           <div>
-            <span class="name">{{ tweet.author.name }}</span>
+            <span class="name" @click.stop="goUser">{{ tweet.author.name }}</span>
             <span class="id">@{{ tweet.author.id }}</span>
             <span class="dot">·</span>
             <span class="time">{{ displayTime }}</span>
@@ -127,6 +127,10 @@ const avatarUrl = computed(
 
 function goDetail() {
   router.push('/tweet/' + tweet.value.id)
+}
+
+function goUser() {
+  void router.push(`/user/${encodeURIComponent(tweet.value.author.id)}`)
 }
 
 function isActive(name: TweetAction) {
@@ -327,6 +331,10 @@ function tweet_images_onload(e: Event) {
   color: var(--black-color);
   margin-left: 0;
   font-weight: 700;
+  cursor: pointer;
+}
+.auther_name .name:hover {
+  text-decoration: underline;
 }
 .auther_name .tweet_more {
   display: flex;

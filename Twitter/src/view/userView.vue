@@ -3,58 +3,63 @@
     <div class="page_main">
       <main>
         <div class="top">
-          <div class="back" @click="$router.back()">
+          <div class="back" @click="goBack">
             <svg viewBox="0 0 24 24">
               <g><path :d="icon_back"></path></g>
             </svg>
           </div>
           <div class="header">
-            <div class="name">{{ userName }}</div>
-            <div class="post-count">{{ postCount }} 帖子</div>
+            <div class="name">{{ profile?.name || '个人资料' }}</div>
+            <div class="post-count">{{ profile?.tweetCount ?? 0 }} 帖子</div>
           </div>
         </div>
-        <div class="profile">
-          <div class="cover">
-            <img :src="`${base}images/64495434_p0.jpg`" alt="" />
-          </div>
-          <div class="profile-info">
-            <div class="avatar-row">
-              <div class="avatar">
-                <img :src="`${base}images/img.png`" alt="" />
+
+        <div v-if="loading_profile" class="state">加载中…</div>
+        <div v-else-if="profile_error" class="state error" role="alert">{{ profile_error }}</div>
+        <template v-else-if="profile">
+          <div class="profile">
+            <div class="cover"></div>
+            <div class="profile-info">
+              <div class="avatar-row">
+                <div class="avatar">
+                  <img :src="avatarUrl" :alt="profile.name" />
+                </div>
+                <div class="action">
+                  <button v-if="isSelf" class="edit-btn">编辑个人资料</button>
+                  <FollowButton
+                    v-else
+                    :user-id="profile.id"
+                    :following="profile.viewerFollowing"
+                    @change="onFollowChange"
+                  />
+                </div>
               </div>
-              <div class="edit-btn-wrapper">
-                <button class="edit-btn">编辑个人资料</button>
+              <div class="display-name">{{ profile.name }}</div>
+              <div class="handle">@{{ profile.id }}</div>
+              <div class="follow-info">
+                <button type="button" class="follow-stat" @click="openList('following')">
+                  <strong>{{ profile.followingCount }}</strong> 正在关注
+                </button>
+                <button type="button" class="follow-stat" @click="openList('followers')">
+                  <strong>{{ profile.followerCount }}</strong> 关注者
+                </button>
               </div>
             </div>
-            <div class="display-name">{{ userName }}</div>
-            <div class="handle">@{{ userId }}</div>
-            <div class="bio" v-if="bio">{{ bio }}</div>
-            <div class="join-date">
-              <svg viewBox="0 0 24 24">
-                <g><path :d="icon_calendar"></path></g>
-              </svg>
-              <span>{{ joinDate }}</span>
-            </div>
-            <div class="follow-info">
-              <span class="following"
-                ><strong>{{ following }}</strong> 正在关注</span
-              >
-              <span class="followers"
-                ><strong>{{ followers }}</strong> 关注者</span
-              >
-            </div>
           </div>
-        </div>
-        <div class="tab">
-          <TabControl :tab_list="tab_list" @tab-click="tab_click"></TabControl>
-        </div>
-        <div class="tweet_list">
-          <div v-if="loading" class="loading">加载中…</div>
-          <TweetShow v-for="tweet in tweets" :key="tweet.id" :tweet="tweet"></TweetShow>
-        </div>
-        <div class="recommend-section">
-          <RecommendFollowing></RecommendFollowing>
-        </div>
+          <div class="tab">
+            <TabControl
+              :key="profile.id + tab_list.join('|')"
+              :tab_list="tab_list"
+              @tab-click="tab_click"
+            ></TabControl>
+          </div>
+          <div class="tweet_list">
+            <div v-if="loading" class="state">加载中…</div>
+            <div v-else-if="tab_error" class="state error" role="alert">{{ tab_error }}</div>
+            <div v-else-if="!tweets.length" class="state">还没有帖子</div>
+            <TweetShow v-for="tweet in tweets" :key="tweet.id" :tweet="tweet"></TweetShow>
+          </div>
+        </template>
       </main>
     </div>
     <div class="side_bar">
@@ -65,64 +70,115 @@
         <NavigationBar></NavigationBar>
       </div>
     </div>
+    <FollowListModal
+      :open="list_open"
+      :user-id="profile?.id ?? ''"
+      :mode="list_mode"
+      @close="list_open = false"
+      @follow-change="onListFollowChange"
+    />
   </div>
 </template>
+
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import type { Me, TweetItem } from '@/types'
-import { getLikes, getMe, getUserReplies, getUserTweets } from '@/request/api'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import type { FollowState, TweetItem, TweetPage, UserProfile } from '@/types'
+import { getLikes, getMe, getProfile, getUserReplies, getUserTweets } from '@/request/api'
+import { useAuthStore } from '@/stores/auth'
 import { useTweetStore } from '@/stores/store'
+import { mediaUrl } from '@/utils/media'
 import TabControl from './components/TabControl.vue'
 import TweetShow from './components/TweetShow.vue'
+import FollowButton from './components/FollowButton.vue'
+import FollowListModal from './components/FollowListModal.vue'
 import SearchBar from './components/SideBar/SideBarComponents/SearchBar.vue'
 import SubscribePremium from './components/SideBar/SideBarComponents/SubscribePremium.vue'
 import RecommendFollowing from './components/SideBar/SideBarComponents/RecommendFollowing.vue'
 import NavigationBar from './components/SideBar/SideBarComponents/NavigationBar.vue'
 
 const base = import.meta.env.BASE_URL
+const route = useRoute()
+const router = useRouter()
+const auth = useAuthStore()
+const tweetStore = useTweetStore()
 const icon_back = ref(
   'M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z',
 )
-const icon_calendar = ref(
-  'M7 4V3h2v1h6V3h2v1h1.5C19.88 4 21 5.12 21 6.5v12c0 1.38-1.12 2.5-2.5 2.5h-13C4.12 21 3 19.88 3 18.5v-12C3 5.12 4.12 4 5.5 4H7zm0 2H5.5c-.28 0-.5.22-.5.5v12c0 .28.22.5.5.5h13c.28 0 .5-.22.5-.5v-12c0-.28-.22-.5-.5-.5H17v1h-2V6H9v1H7V6zm0 5V9h2v2H7zm4 0V9h2v2h-2zm4 0V9h2v2h-2z',
-)
 
-const me = ref<Me | null>(null)
-const userName = ref('')
-const userId = ref('')
-const bio = ref('')
-const joinDate = ref('2024年1月加入')
-const following = ref(0)
-const followers = ref(0)
-const postCount = ref(0)
-const tab_list = ref(['帖子', '回复', '亮点', '文章', '媒体', '喜欢'])
+const profile = ref<UserProfile | null>(null)
+const loading_profile = ref(false)
+const profile_error = ref('')
 const tweets = ref<TweetItem[]>([])
 const loading = ref(false)
-const tweetStore = useTweetStore()
+const tab_error = ref('')
+const list_open = ref(false)
+const list_mode = ref<'followers' | 'following'>('followers')
+let profile_seq = 0
+let tab_seq = 0
+
+const isSelf = computed(() => profile.value?.self ?? false)
+const tab_list = computed(() =>
+  isSelf.value ? ['帖子', '回复', '媒体', '喜欢'] : ['帖子', '回复', '媒体'],
+)
+const avatarUrl = computed(
+  () => mediaUrl(profile.value?.avatarUrl) || `${base}images/img.png`,
+)
+
+async function resolveUserId() {
+  const param = route.params.id
+  if (typeof param === 'string' && param) return param
+  if (auth.user?.id) return auth.user.id
+  return (await getMe()).id
+}
+
+async function loadProfile() {
+  const seq = ++profile_seq
+  loading_profile.value = true
+  profile_error.value = ''
+  tweets.value = []
+  try {
+    const userId = await resolveUserId()
+    const data = await getProfile(userId)
+    if (seq !== profile_seq) return
+    profile.value = data
+    await loadTab('帖子')
+  } catch {
+    if (seq !== profile_seq) return
+    profile.value = null
+    profile_error.value = '用户资料加载失败，请稍后重试'
+  } finally {
+    if (seq === profile_seq) loading_profile.value = false
+  }
+}
 
 async function loadTab(tab: string) {
-  if (!me.value) return
+  if (!profile.value) return
+  const targetId = profile.value.id
+  const seq = ++tab_seq
   loading.value = true
+  tab_error.value = ''
   try {
-    if (tab === '喜欢') {
-      const page = await getLikes()
-      tweets.value = page.items
+    let page: TweetPage
+    if (tab === '喜欢' && isSelf.value) {
+      page = await getLikes()
     } else if (tab === '回复') {
-      const page = await getUserReplies(me.value.id)
-      tweets.value = page.items
+      page = await getUserReplies(targetId)
     } else if (tab === '媒体') {
-      const page = await getUserTweets(me.value.id, null, 50)
-      tweets.value = page.items.filter((tweet) => tweet.media.length > 0)
+      page = await getUserTweets(targetId, null, 50)
+      page = { ...page, items: page.items.filter((tweet) => tweet.media.length > 0) }
     } else {
-      const page = await getUserTweets(me.value.id)
-      tweets.value = page.items
+      page = await getUserTweets(targetId)
     }
+    if (seq !== tab_seq || profile.value?.id !== targetId) return
+    tweets.value = page.items
     tweets.value.forEach((item) => tweetStore.putTweet(item))
-    if (tab === '帖子') postCount.value = tweets.value.length
   } catch {
-    // Keep the current tab data.
+    if (seq !== tab_seq) return
+    tweets.value = []
+    tab_error.value = '帖子加载失败，请稍后重试'
   } finally {
-    loading.value = false
+    if (seq === tab_seq) loading.value = false
   }
 }
 
@@ -130,13 +186,49 @@ function tab_click(tab: string) {
   void loadTab(tab)
 }
 
-onMounted(async () => {
-  const profile = await getMe()
-  me.value = profile
-  userName.value = profile.name
-  userId.value = profile.id
-  await loadTab('帖子')
-})
+function openList(mode: 'followers' | 'following') {
+  list_mode.value = mode
+  list_open.value = true
+}
+
+function onFollowChange(state: FollowState) {
+  if (!profile.value || profile.value.id !== state.targetId) return
+  profile.value = {
+    ...profile.value,
+    viewerFollowing: state.following,
+    followerCount: state.followerCount,
+  }
+}
+
+function onListFollowChange(state: FollowState) {
+  if (!profile.value) return
+  const followingCount = isSelf.value
+    ? Math.max(0, profile.value.followingCount + (state.following ? 1 : -1))
+    : profile.value.followingCount
+  profile.value = {
+    ...profile.value,
+    followingCount,
+    ...(state.targetId === profile.value.id
+      ? { viewerFollowing: state.following, followerCount: state.followerCount }
+      : {}),
+  }
+}
+
+function goBack() {
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    void router.push('/')
+  }
+}
+
+onMounted(loadProfile)
+watch(
+  () => route.params.id,
+  () => {
+    void loadProfile()
+  },
+)
 </script>
 <style scoped>
 #user {
@@ -199,12 +291,6 @@ main {
   width: 100%;
   height: 200px;
   background: linear-gradient(135deg, #1d9bf0 0%, #1a8cd8 50%, #0f6faf 100%);
-  overflow: hidden;
-}
-.cover img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 .profile-info {
   position: relative;
@@ -232,10 +318,12 @@ main {
   height: 130px;
   object-fit: cover;
 }
+.action {
+  align-self: flex-end;
+}
 .edit-btn {
   height: 34px;
   padding: 0 16px;
-  align-self: flex-end;
   border-radius: 17px;
   border: var(--boundary-style);
   font-size: 14px;
@@ -259,24 +347,6 @@ main {
   color: var(--grey-color);
   margin-bottom: 12px;
 }
-.bio {
-  font-size: 15px;
-  line-height: 1.4;
-  margin-bottom: 12px;
-}
-.join-date {
-  display: flex;
-  align-items: center;
-  font-size: 15px;
-  color: var(--grey-color);
-  margin-bottom: 12px;
-}
-.join-date svg {
-  width: 18px;
-  height: 18px;
-  fill: var(--grey-color);
-  margin-right: 4px;
-}
 .follow-info {
   display: flex;
   gap: 20px;
@@ -284,13 +354,18 @@ main {
   color: var(--grey-color);
   margin-bottom: 12px;
 }
-.follow-info strong {
-  color: var(--black-color);
-}
-.follow-info span {
+.follow-stat {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--grey-color);
+  font-size: 14px;
   cursor: pointer;
 }
-.follow-info span:hover {
+.follow-stat strong {
+  color: var(--black-color);
+}
+.follow-stat:hover {
   text-decoration: underline;
 }
 .tab {
@@ -299,12 +374,19 @@ main {
 .tweet_list {
   min-height: 24px;
 }
-
+.state {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--grey-color);
+  font-size: 14px;
+  border-bottom: var(--boundary-style);
+}
+.state.error {
+  color: #f4212e;
+}
 .side_bar {
   margin-left: 30px;
   margin-top: 10px;
-}
-.side_bar {
   --title-font-size: 20px;
   --title-font-weight: 700;
   --box-padding: 12px 16px;

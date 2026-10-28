@@ -10,6 +10,13 @@
       <div class="update_tweet" v-if="loading">加载中…</div>
       <div class="update_tweet" v-else>显示 {{ tweet_list.length }} 帖子</div>
       <div class="load_error" v-if="load_error" role="alert">{{ load_error }}</div>
+      <div class="empty" v-if="is_empty">
+        <template v-if="active_tab === 'following'">
+          <p>你还没有关注任何人</p>
+          <p class="empty-hint">在右侧的推荐关注里关注一些人，这里就会出现他们的帖子。</p>
+        </template>
+        <p v-else>还没有帖子</p>
+      </div>
       <div class="tweets">
         <TweetShow v-for="tweet in tweet_list" :key="tweet.id" :tweet="tweet"></TweetShow>
       </div>
@@ -35,42 +42,64 @@ import PostComposer from './PostComposer.vue'
 import TabControl from './TabControl.vue'
 import TweetShow from './TweetShow.vue'
 
+type Feed = 'recommended' | 'following'
+
 const PAGE_SIZE = 20
 const tab_list = ref(['为你推荐', '正在关注'])
 const tweetStore = useTweetStore()
 const tweet_list = computed(() => tweetStore.tweets)
+const active_tab = ref<Feed>('recommended')
 const loading = ref(false)
 const loading_more = ref(false)
 const load_error = ref('')
 const next_cursor = ref<string | null>(null)
 const has_more = ref(false)
+let request_seq = 0
+
+const is_empty = computed(
+  () => !loading.value && !load_error.value && tweet_list.value.length === 0,
+)
+
+function feedParam(): 'following' | undefined {
+  return active_tab.value === 'following' ? 'following' : undefined
+}
 
 async function loadTweets() {
+  const seq = ++request_seq
   loading.value = true
   load_error.value = ''
+  next_cursor.value = null
+  has_more.value = false
   try {
-    const page = await getTweets(null, PAGE_SIZE)
+    const page = await getTweets(null, PAGE_SIZE, feedParam())
+    if (seq !== request_seq) return
     tweetStore.setFeed(page)
     next_cursor.value = page.nextCursor
     has_more.value = page.hasMore
   } catch {
-    load_error.value = '帖子加载失败，请确认后端已启动'
+    if (seq !== request_seq) return
+    load_error.value =
+      active_tab.value === 'following'
+        ? '关注动态加载失败，请稍后重试'
+        : '帖子加载失败，请确认后端已启动'
   } finally {
-    loading.value = false
+    if (seq === request_seq) loading.value = false
   }
 }
 
 async function loadMore() {
-  if (!has_more.value || loading_more.value) return
+  if (!has_more.value || loading_more.value || loading.value) return
+  const seq = request_seq
   loading_more.value = true
   load_error.value = ''
   try {
-    const page = await getTweets(next_cursor.value, PAGE_SIZE)
+    const page = await getTweets(next_cursor.value, PAGE_SIZE, feedParam())
+    if (seq !== request_seq) return
     tweetStore.appendFeed(page)
     next_cursor.value = page.nextCursor
     has_more.value = page.hasMore
   } catch {
-    load_error.value = '加载更多失败，请稍后重试'
+    if (seq === request_seq) load_error.value = '加载更多失败，请稍后重试'
   } finally {
     loading_more.value = false
   }
@@ -81,8 +110,11 @@ function onPosted(tweet: TweetItem) {
   load_error.value = ''
 }
 
-function tab_click() {
-  // 预留：切换“为你推荐 / 正在关注”
+function tab_click(tab: string) {
+  const next: Feed = tab === '正在关注' ? 'following' : 'recommended'
+  if (next === active_tab.value) return
+  active_tab.value = next
+  void loadTweets()
 }
 
 onMounted(loadTweets)
@@ -103,6 +135,22 @@ onMounted(loadTweets)
   color: #f4212e;
   font-size: 13px;
   border-bottom: var(--boundary-style);
+}
+.empty {
+  padding: 32px 24px;
+  text-align: center;
+  color: var(--black-color);
+  border-bottom: var(--boundary-style);
+}
+.empty p {
+  font-size: 15px;
+  font-weight: 600;
+}
+.empty-hint {
+  margin-top: 8px;
+  font-weight: 400 !important;
+  font-size: 14px !important;
+  color: var(--grey-color);
 }
 .load_more {
   display: block;

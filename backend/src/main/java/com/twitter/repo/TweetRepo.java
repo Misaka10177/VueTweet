@@ -40,6 +40,22 @@ public interface TweetRepo extends JpaRepository<Tweet, Long> {
                               Pageable pageable);
 
     @EntityGraph(attributePaths = "author")
+    @Query("select t from Tweet t where t.replyToId is null and t.deletedAt is null " +
+            "and t.author.id in :authorIds order by t.createdAt desc, t.id desc")
+    List<Tweet> findFollowingFeedFirst(@Param("authorIds") Collection<String> authorIds,
+                                       Pageable pageable);
+
+    @EntityGraph(attributePaths = "author")
+    @Query("select t from Tweet t where t.replyToId is null and t.deletedAt is null " +
+            "and t.author.id in :authorIds " +
+            "and (t.createdAt < :cursorTime or (t.createdAt = :cursorTime and t.id < :cursorId)) " +
+            "order by t.createdAt desc, t.id desc")
+    List<Tweet> findFollowingFeedAfter(@Param("authorIds") Collection<String> authorIds,
+                                       @Param("cursorTime") LocalDateTime cursorTime,
+                                       @Param("cursorId") long cursorId,
+                                       Pageable pageable);
+
+    @EntityGraph(attributePaths = "author")
     @Query("select t from Tweet t where t.replyToId = :replyToId and t.deletedAt is null " +
             "order by t.createdAt asc, t.id asc")
     List<Tweet> findRepliesFirst(@Param("replyToId") Long replyToId, Pageable pageable);
@@ -107,4 +123,6 @@ public interface TweetRepo extends JpaRepository<Tweet, Long> {
     @Query("update Tweet t set t.deletedAt = :deletedAt " +
             "where t.id = :id and t.deletedAt is null")
     int softDelete(@Param("id") Long id, @Param("deletedAt") LocalDateTime deletedAt);
+
+    long countByAuthorIdAndReplyToIdIsNullAndDeletedAtIsNull(String authorId);
 }

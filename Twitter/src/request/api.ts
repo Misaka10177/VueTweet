@@ -4,10 +4,14 @@ import type {
   AuthResponse,
   AuthSession,
   CheckUserResponse,
+  FollowPage,
+  FollowState,
+  FollowUser,
   Me,
   Trend,
   TweetItem,
   TweetPage,
+  UserProfile,
 } from '@/types'
 
 type LoginRequest = { username: string; password: string }
@@ -19,8 +23,12 @@ const pageParams = (cursor?: string | null, limit = 20) => ({
   limit,
 })
 
-export const getTweets = (cursor?: string | null, limit = 20): Promise<TweetPage> =>
-  get('/tweets', pageParams(cursor, limit))
+export const getTweets = (
+  cursor?: string | null,
+  limit = 20,
+  feed?: 'following',
+): Promise<TweetPage> =>
+  get('/tweets', { ...pageParams(cursor, limit), ...(feed ? { feed } : {}) })
 
 export const getTweet = (tweetId: string): Promise<TweetItem> => get(`/tweets/${tweetId}`)
 
@@ -56,6 +64,31 @@ export const unbookmark = (tweetId: string): Promise<ActionState> =>
 export const getTrends = (): Promise<Trend[]> => get('/trends')
 
 export const getMe = (): Promise<Me> => get('/me')
+
+export const getProfile = (userId: string): Promise<UserProfile> =>
+  get(`/users/${encodeURIComponent(userId)}`)
+
+export const getFollowSuggestions = (): Promise<FollowUser[]> => get('/users/suggestions')
+
+export const getFollowers = (
+  userId: string,
+  cursor?: string | null,
+  limit = 20,
+): Promise<FollowPage> =>
+  get(`/users/${encodeURIComponent(userId)}/followers`, pageParams(cursor, limit))
+
+export const getFollowing = (
+  userId: string,
+  cursor?: string | null,
+  limit = 20,
+): Promise<FollowPage> =>
+  get(`/users/${encodeURIComponent(userId)}/following`, pageParams(cursor, limit))
+
+export const followUser = (userId: string): Promise<FollowState> =>
+  put(`/users/${encodeURIComponent(userId)}/follow`)
+
+export const unfollowUser = (userId: string): Promise<FollowState> =>
+  del(`/users/${encodeURIComponent(userId)}/follow`)
 
 export const getUserTweets = (
   userId: string,
