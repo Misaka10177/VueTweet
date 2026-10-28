@@ -1,20 +1,16 @@
-import { ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { defineStore } from 'pinia'
 
-import type { Tweet, Trend } from '@/types'
+import type { ActionState, Trend, TweetItem, TweetPage } from '@/types'
 
 export const useSettingStore = defineStore('setting', () => {
   const last_home_tab_index = ref(0)
-  // const doubleCount = computed(() => count.value * 2)
-  // function increment() {
-  //   count.value++
-  // }
 
   return { last_home_tab_index }
 })
 
 export const useTrendStore = defineStore('trend', () => {
-  const trends = ref(<Trend[]>[])
+  const trends = ref<Trend[]>([])
 
   function setTrend(trendList: Trend[]) {
     if (!trends.value.length) {
@@ -26,31 +22,85 @@ export const useTrendStore = defineStore('trend', () => {
 })
 
 export const useTweetStore = defineStore('tweet', () => {
-  const tweets = ref(<Tweet[]>[])
+  const byId = reactive(new Map<string, TweetItem>())
+  const feedIds = ref<string[]>([])
+  const nextCursor = ref<string | null>(null)
+  const hasMore = ref(false)
 
-  function setTweets(tweetList: Tweet[]) {
-    const fetchedIds = new Set(tweetList.map((tweet) => tweet.id))
-    const localOnly = tweets.value.filter((tweet) => !fetchedIds.has(tweet.id))
-    tweets.value = [...localOnly, ...tweetList]
+  const tweets = computed(() =>
+    feedIds.value
+      .map((id) => byId.get(id))
+      .filter((tweet): tweet is TweetItem => Boolean(tweet)),
+  )
+
+  function put(tweet: TweetItem) {
+    byId.set(tweet.id, tweet)
   }
 
-  function updateTweet(id: string, data: Partial<Tweet>) {
-    const index = tweets.value.findIndex((t) => t.id === id)
-    const current = tweets.value[index]
-    if (current) {
-      tweets.value[index] = { ...current, ...data }
+  function setFeed(page: TweetPage) {
+    byId.clear()
+    feedIds.value = []
+    appendFeed(page)
+  }
+
+  function appendFeed(page: TweetPage) {
+    for (const tweet of page.items) {
+      put(tweet)
+      if (!feedIds.value.includes(tweet.id)) {
+        feedIds.value.push(tweet.id)
+      }
+    }
+    nextCursor.value = page.nextCursor
+    hasMore.value = page.hasMore
+  }
+
+  function prependTweet(tweet: TweetItem) {
+    put(tweet)
+    feedIds.value = [tweet.id, ...feedIds.value.filter((id) => id !== tweet.id)]
+  }
+
+  function replace(id: string, tweet: TweetItem) {
+    put(tweet)
+    if (!feedIds.value.includes(id)) {
+      feedIds.value.unshift(id)
     }
   }
 
-  function prependTweet(tweet: Tweet) {
-    tweets.value = [tweet, ...tweets.value.filter((t) => t.id !== tweet.id)]
+  function applyAction(state: ActionState) {
+    const current = byId.get(state.tweetId)
+    if (!current) return
+    put({ ...current, stats: state.stats, viewer: state.viewer })
   }
 
-  function appendTweets(tweetList: Tweet[]) {
-    const existing = new Set(tweets.value.map((tweet) => tweet.id))
-    const incoming = tweetList.filter((tweet) => !existing.has(tweet.id))
-    tweets.value = [...tweets.value, ...incoming]
+  function updateTweet(id: string, data: Partial<TweetItem>) {
+    const current = byId.get(id)
+    if (current) {
+      put({ ...current, ...data })
+    }
   }
 
-  return { tweets, setTweets, updateTweet, prependTweet, appendTweets }
+  function removeTweet(id: string) {
+    byId.delete(id)
+    feedIds.value = feedIds.value.filter((tweetId) => tweetId !== id)
+  }
+
+  function getTweet(id: string): TweetItem | undefined {
+    return byId.get(id)
+  }
+
+  return {
+    byId,
+    tweets,
+    nextCursor,
+    hasMore,
+    putTweet: put,
+    setFeed,
+    appendFeed,
+    prependTweet,
+    replace,
+    applyAction,
+    updateTweet,
+    removeTweet,
+    getTweet,
+  }
 })

@@ -1,19 +1,23 @@
 package com.twitter.controller;
 
-import com.twitter.dto.ReplyResult;
-import com.twitter.dto.ToggleResult;
+import com.twitter.dto.ActionStateDto;
 import com.twitter.dto.TweetDto;
+import com.twitter.dto.TweetPageDto;
+import com.twitter.model.InteractionType;
 import com.twitter.security.AuthPrincipal;
 import com.twitter.service.TweetService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
-import java.util.Map;
 
 @RestController
 public class TweetController {
@@ -23,53 +27,90 @@ public class TweetController {
         this.tweetService = tweetService;
     }
 
-    @GetMapping("/tweet")
-    public List<TweetDto> getTweets(
-            @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "20") int size,
+    @GetMapping("/tweets")
+    public TweetPageDto getTweets(
+            @RequestParam(value = "cursor", required = false) String cursor,
+            @RequestParam(value = "limit", defaultValue = "20") int limit,
             @AuthenticationPrincipal AuthPrincipal principal) {
-        return tweetService.getFeed(principal.getUserId(), page, size);
+        return tweetService.getFeed(userId(principal), cursor, limit);
     }
 
-    @GetMapping("/tweet/{tweetId}")
-    public TweetDto getTweet(@PathVariable Long tweetId, @AuthenticationPrincipal AuthPrincipal principal) {
-        return tweetService.getTweet(tweetId, principal.getUserId());
+    @GetMapping("/tweets/{tweetId}")
+    public TweetDto getTweet(@PathVariable Long tweetId,
+                             @AuthenticationPrincipal AuthPrincipal principal) {
+        return tweetService.getTweet(tweetId, userId(principal));
     }
 
-    @GetMapping("/tweet/{tweetId}/replies")
-    public List<TweetDto> getReplies(@PathVariable Long tweetId, @AuthenticationPrincipal AuthPrincipal principal) {
-        return tweetService.getReplies(tweetId, principal.getUserId());
+    @GetMapping("/tweets/{tweetId}/replies")
+    public TweetPageDto getReplies(@PathVariable Long tweetId,
+                                   @RequestParam(value = "cursor", required = false) String cursor,
+                                   @RequestParam(value = "limit", defaultValue = "20") int limit,
+                                   @AuthenticationPrincipal AuthPrincipal principal) {
+        return tweetService.getReplies(tweetId, userId(principal), cursor, limit);
     }
 
-    @PostMapping(value = "/tweet", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/tweets", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TweetDto> createTweet(
             @RequestParam(value = "text", required = false, defaultValue = "") String text,
             @RequestParam(value = "images", required = false) MultipartFile[] images,
             @RequestParam(value = "replyToId", required = false) Long replyToId,
             @AuthenticationPrincipal AuthPrincipal principal) {
-        TweetDto created = tweetService.create(principal.getUserId(), text, images, replyToId);
+        TweetDto created = tweetService.create(requireUserId(principal), text, images, replyToId);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @PostMapping("/tweet/{tweetId}/reply")
-    public ReplyResult addReply(@PathVariable Long tweetId,
-                                @RequestBody Map<String, String> body,
-                                @AuthenticationPrincipal AuthPrincipal principal) {
-        return tweetService.addReply(tweetId, principal.getUserId(), body.get("text"));
+    @DeleteMapping("/tweets/{tweetId}")
+    public ResponseEntity<Void> deleteTweet(@PathVariable Long tweetId,
+                                            @AuthenticationPrincipal AuthPrincipal principal) {
+        tweetService.delete(tweetId, requireUserId(principal));
+        return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/tweet/{tweetId}/upvote")
-    public ToggleResult toggleUpvote(@PathVariable Long tweetId, @AuthenticationPrincipal AuthPrincipal principal) {
-        return tweetService.toggleInteraction(tweetId, principal.getUserId(), "upvote");
+    @PutMapping("/tweets/{tweetId}/like")
+    public ActionStateDto like(@PathVariable Long tweetId,
+                               @AuthenticationPrincipal AuthPrincipal principal) {
+        return tweetService.setInteraction(tweetId, requireUserId(principal), InteractionType.LIKE, true);
     }
 
-    @PostMapping("/tweet/{tweetId}/transpond")
-    public ToggleResult toggleTranspond(@PathVariable Long tweetId, @AuthenticationPrincipal AuthPrincipal principal) {
-        return tweetService.toggleInteraction(tweetId, principal.getUserId(), "transpond");
+    @DeleteMapping("/tweets/{tweetId}/like")
+    public ActionStateDto unlike(@PathVariable Long tweetId,
+                                 @AuthenticationPrincipal AuthPrincipal principal) {
+        return tweetService.setInteraction(tweetId, requireUserId(principal), InteractionType.LIKE, false);
     }
 
-    @PostMapping("/tweet/{tweetId}/bookmark")
-    public ToggleResult toggleBookmark(@PathVariable Long tweetId, @AuthenticationPrincipal AuthPrincipal principal) {
-        return tweetService.toggleInteraction(tweetId, principal.getUserId(), "bookmark");
+    @PutMapping("/tweets/{tweetId}/repost")
+    public ActionStateDto repost(@PathVariable Long tweetId,
+                                 @AuthenticationPrincipal AuthPrincipal principal) {
+        return tweetService.setInteraction(tweetId, requireUserId(principal), InteractionType.REPOST, true);
+    }
+
+    @DeleteMapping("/tweets/{tweetId}/repost")
+    public ActionStateDto unrepost(@PathVariable Long tweetId,
+                                   @AuthenticationPrincipal AuthPrincipal principal) {
+        return tweetService.setInteraction(tweetId, requireUserId(principal), InteractionType.REPOST, false);
+    }
+
+    @PutMapping("/tweets/{tweetId}/bookmark")
+    public ActionStateDto bookmark(@PathVariable Long tweetId,
+                                   @AuthenticationPrincipal AuthPrincipal principal) {
+        return tweetService.setInteraction(tweetId, requireUserId(principal), InteractionType.BOOKMARK, true);
+    }
+
+    @DeleteMapping("/tweets/{tweetId}/bookmark")
+    public ActionStateDto unbookmark(@PathVariable Long tweetId,
+                                     @AuthenticationPrincipal AuthPrincipal principal) {
+        return tweetService.setInteraction(tweetId, requireUserId(principal), InteractionType.BOOKMARK, false);
+    }
+
+    private String userId(AuthPrincipal principal) {
+        return principal == null ? null : principal.getUserId();
+    }
+
+    private String requireUserId(AuthPrincipal principal) {
+        if (principal == null) {
+            throw new com.twitter.exception.ApiException(HttpStatus.UNAUTHORIZED,
+                    "UNAUTHORIZED", "请先登录");
+        }
+        return principal.getUserId();
     }
 }

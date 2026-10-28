@@ -69,9 +69,9 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue'
-import axios from 'axios'
 import { useRoute } from 'vue-router'
 import { checkUser } from '@/request/api'
+import { toApiError } from '@/request/http'
 import { useAuthStore } from '@/stores/auth'
 import router from '@/router'
 
@@ -127,10 +127,10 @@ function redirectTarget() {
 }
 
 function errorMessage(err: unknown) {
-  if (axios.isAxiosError(err)) {
-    const data = err.response?.data as { message?: string } | undefined
-    if (data?.message) return data.message
-    if (!err.response) return '无法连接服务器，请确认后端已启动'
+  const data = toApiError(err)
+  if (data?.message) return data.message
+  if (err instanceof Error && err.message === 'Network Error') {
+    return '无法连接服务器，请确认后端已启动'
   }
   return '登录失败，请稍后再试'
 }

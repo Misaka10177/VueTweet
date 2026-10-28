@@ -12,14 +12,19 @@
         </div>
         <div class="detail-content">
           <!-- 引用原推文 -->
-          <TweetShow v-if="tweet?.replyTo" :tweet="tweet.replyTo" :isQuoted="true"></TweetShow>
+          <TweetShow
+            v-if="quotedTweet"
+            :tweet="quotedTweet"
+            :isQuoted="true"
+            :readonly="true"
+          ></TweetShow>
           <!-- 主推文 -->
           <div class="main-tweet" v-if="tweet">
             <div class="tweet-header">
               <div class="avatar-col">
                 <div v-if="tweet.replyTo" class="thread-line-top"></div>
                 <div class="profile_photo">
-                  <img :src="mediaUrl(tweet.author.profile_photo)" alt="" />
+                  <img :src="mediaUrl(tweet.author.avatarUrl)" alt="" />
                 </div>
               </div>
               <div class="author-info">
@@ -34,53 +39,51 @@
             </div>
             <div class="tweet-body">
               <div class="text">{{ tweet.text }}</div>
-              <div class="images" v-if="tweet.images && tweet.images.length">
-                <img v-for="(img, i) in tweet.images" :key="i" :src="mediaUrl(img)" alt="" />
+              <div class="images" v-if="tweet.media.length">
+                <img v-for="(media, i) in tweet.media" :key="i" :src="mediaUrl(media.url)" alt="" />
               </div>
               <div class="meta">
-                <span class="time">{{ formatTime(tweet.publishTime) }}</span>
+                <span class="time">{{ formatTime(tweet.createdAt) }}</span>
                 <span class="sep">·</span>
-                <span class="view-count">{{ tweet.interaction.view }}</span
+                <span class="view-count">{{ tweet.stats.views }}</span
                 ><span> 查看</span>
               </div>
             </div>
             <div class="tweet-actions">
               <div class="interaction">
                 <div
-                  v-for="(item, index) in interaction_list"
-                  :key="index"
-                  @click.stop="item.name !== 'reply' && toggleInteraction(item.name)"
-                  :class="['active', { activated: activeStates[item.name] }]"
+                  v-for="item in interaction_list"
+                  :key="item.name"
+                  @click.stop="toggleInteraction(item.name)"
+                  :class="['active', { activated: isActive(item.name) }]"
                 >
                   <span class="icon">
                     <div></div>
                     <svg viewBox="0 0 24 24">
                       <g>
                         <path
-                          :d="
-                            activeStates[item.name] && item.activePath ? item.activePath : item.path
-                          "
+                          :d="isActive(item.name) && item.activePath ? item.activePath : item.path"
                         ></path>
                       </g>
                     </svg>
                   </span>
-                  <span>{{ tweet.interaction[item.name] }}</span>
+                  <span>{{ tweet.stats[item.stat] }}</span>
                 </div>
                 <div
                   @click.stop="toggleInteraction('bookmark')"
-                  :class="['active', { activated: activeStates.bookmark }]"
+                  :class="['active', { activated: isActive('bookmark') }]"
                 >
                   <span class="icon">
                     <div></div>
                     <svg viewBox="0 0 24 24">
                       <g>
                         <path
-                          :d="activeStates.bookmark ? icon_bookmark_filled : icon_bookmark"
+                          :d="isActive('bookmark') ? icon_bookmark_filled : icon_bookmark"
                         ></path>
                       </g>
                     </svg>
                   </span>
-                  <span>{{ tweet.interaction.bookmark || 0 }}</span>
+                  <span>{{ tweet.stats.bookmarks || 0 }}</span>
                 </div>
               </div>
             </div>
@@ -108,10 +111,13 @@
           <!-- 回复列表 -->
           <div class="replies" v-if="comments.length">
             <TweetShow
-              v-for="(comment, index) in comments"
-              :key="index"
+              v-for="comment in comments"
+              :key="comment.id"
               :tweet="comment"
             ></TweetShow>
+            <button v-if="repliesHasMore" class="load-more-replies" @click="loadMoreReplies">
+              加载更多回复
+            </button>
           </div>
           <div class="no-replies" v-else>
             <div class="empty-text">暂无回复</div>
@@ -130,38 +136,47 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import type { Action, ActionState, TweetItem, TweetStats, TweetViewer } from '@/types'
+import { createTweet, getReplies, getTweet, like, bookmark, repost, unlike, unbookmark, unrepost } from '@/request/api'
 import { useTweetStore } from '@/stores/store'
+import { mediaUrl } from '@/utils/media'
 import SearchBar from './components/SideBar/SideBarComponents/SearchBar.vue'
 import SubscribePremium from './components/SideBar/SideBarComponents/SubscribePremium.vue'
 import RecommendFollowing from './components/SideBar/SideBarComponents/RecommendFollowing.vue'
 import NavigationBar from './components/SideBar/SideBarComponents/NavigationBar.vue'
 import TweetShow from './components/TweetShow.vue'
-import type { Tweet } from '@/types'
-import { mediaUrl } from '@/utils/media'
-import {
-  getTweet,
-  getReplies,
-  addReply,
-  toggleUpvote,
-  toggleTranspond,
-  toggleBookmark,
-} from '@/request/api.js'
+
+type InteractionName = 'reply' | 'repost' | 'like'
 
 const route = useRoute()
 const tweetStore = useTweetStore()
 const base = import.meta.env.BASE_URL
-const tweet = ref<Tweet | null>(null)
-const comments = ref<Tweet[]>([])
+const tweet = ref<TweetItem | null>(null)
+const comments = ref<TweetItem[]>([])
 const replyText = ref('')
 const replyFocused = ref(false)
+const repliesCursor = ref<string | null>(null)
+const repliesHasMore = ref(false)
+const pending = ref<Action | null>(null)
+
+const quotedTweet = computed<TweetItem | null>(() => {
+  const parent = tweet.value?.replyTo
+  if (!parent) return null
+  return {
+    ...parent,
+    createdAt: '',
+    editedAt: null,
+    replyToId: null,
+    replyTo: null,
+    stats: { replies: 0, reposts: 0, likes: 0, bookmarks: 0, views: 0 },
+    viewer: null,
+  }
+})
 
 const icon_back = ref(
   'M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z',
-)
-const tweet_more_icon = ref(
-  'M3 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm7 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z',
 )
 const icon_bookmark = ref(
   'M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z',
@@ -169,55 +184,59 @@ const icon_bookmark = ref(
 const icon_bookmark_filled = ref(
   'M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5z',
 )
+const tweet_more_icon = ref(
+  'M3 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm7 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z',
+)
 
-type interactionType = 'reply' | 'transpond' | 'upvote'
-const interaction_list = ref<{ name: interactionType; path: string; activePath?: string }[]>([
+const interaction_list: { name: InteractionName; stat: keyof TweetStats; path: string; activePath?: string }[] = [
   {
     name: 'reply',
+    stat: 'replies',
     path: 'M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z',
   },
   {
-    name: 'transpond',
+    name: 'repost',
+    stat: 'reposts',
     path: 'M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z',
   },
   {
-    name: 'upvote',
+    name: 'like',
+    stat: 'likes',
     path: 'M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z',
     activePath:
       'M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z',
   },
-])
+]
 
-const activeStates = ref<Record<string, boolean>>({})
-
-const myKeyMap: Record<string, 'myUpvote' | 'myTranspond' | 'myBookmark'> = {
-  upvote: 'myUpvote',
-  transpond: 'myTranspond',
-  bookmark: 'myBookmark',
-}
-const toggleActions: Record<string, (id: string) => Promise<any>> = {
-  upvote: toggleUpvote,
-  transpond: toggleTranspond,
-  bookmark: toggleBookmark,
+const actionFns: Record<Action, { on: (id: string) => Promise<ActionState>; off: (id: string) => Promise<ActionState> }> = {
+  like: { on: like, off: unlike },
+  repost: { on: repost, off: unrepost },
+  bookmark: { on: bookmark, off: unbookmark },
 }
 
-function toggleInteraction(name: string) {
-  const apiFn = toggleActions[name]
-  if (!apiFn || !tweet.value) return
-  apiFn(tweet.value.id).then((res: any) => {
-    if (res.status === 'success') {
-      activeStates.value[name] = res.active
-      tweet.value!.interaction[name as keyof typeof tweet.value.interaction] = res.count
-      const myKey = myKeyMap[name]
-      if (myKey) (tweet.value as any)[myKey] = res.active
-      tweetStore.updateTweet(tweet.value!.id, {
-        interaction: { ...tweet.value!.interaction },
-        myUpvote: tweet.value!.myUpvote,
-        myTranspond: tweet.value!.myTranspond,
-        myBookmark: tweet.value!.myBookmark,
-      })
-    }
-  })
+function isActive(name: InteractionName | 'bookmark') {
+  const viewer: TweetViewer | null = tweet.value?.viewer ?? null
+  if (!viewer) return false
+  if (name === 'like') return viewer.liked
+  if (name === 'repost') return viewer.reposted
+  if (name === 'bookmark') return viewer.bookmarked
+  return false
+}
+
+async function toggleInteraction(name: InteractionName | 'bookmark') {
+  if (name === 'reply' || !tweet.value || pending.value) return
+  pending.value = name
+  try {
+    const state = isActive(name)
+      ? await actionFns[name].off(tweet.value.id)
+      : await actionFns[name].on(tweet.value.id)
+    tweet.value = { ...tweet.value, stats: state.stats, viewer: state.viewer }
+    tweetStore.applyAction(state)
+  } catch {
+    // Keep the previous state.
+  } finally {
+    pending.value = null
+  }
 }
 
 function formatTime(time: string) {
@@ -232,43 +251,67 @@ function formatTime(time: string) {
   return `${timeStr} · ${dateStr}`
 }
 
-function submitReply() {
-  const id = route.params.id as string
-  addReply(id, { text: replyText.value }).then(() => {
-    replyText.value = ''
-    getReplies(id).then((res: Tweet[]) => {
-      comments.value = res
-    })
-  })
+async function loadReplies(reset: boolean) {
+  if (!tweet.value) return
+  try {
+    const page = await getReplies(tweet.value.id, reset ? null : repliesCursor.value, 20)
+    page.items.forEach((item) => tweetStore.putTweet(item))
+    if (reset) {
+      comments.value = page.items
+    } else {
+      comments.value = [...comments.value, ...page.items]
+    }
+    repliesCursor.value = page.nextCursor
+    repliesHasMore.value = page.hasMore
+  } catch {
+    // Keep the current replies.
+  }
 }
 
-function loadTweet(id: string) {
-  getTweet(id).then((res: Tweet) => {
+async function submitReply() {
+  if (!tweet.value || !replyText.value.trim()) return
+  const form = new FormData()
+  form.append('text', replyText.value.trim())
+  form.append('replyToId', tweet.value.id)
+  try {
+    await createTweet(form)
+    replyText.value = ''
+    await loadTweet(tweet.value.id)
+  } catch {
+    // Leave the draft in place so the user can retry.
+  }
+}
+
+async function loadMoreReplies() {
+  if (!repliesHasMore.value) return
+  await loadReplies(false)
+}
+
+async function loadTweet(id: string) {
+  try {
+    const res = await getTweet(id)
     tweet.value = res
-    activeStates.value = {
-      upvote: !!res.myUpvote,
-      transpond: !!res.myTranspond,
-      bookmark: !!res.myBookmark,
-    }
-  })
-  getReplies(id).then((res: Tweet[]) => {
-    comments.value = res
-  })
+    tweetStore.putTweet(res)
+    await loadReplies(true)
+  } catch {
+    tweet.value = null
+  }
 }
 
 onMounted(() => {
-  loadTweet(route.params.id as string)
+  void loadTweet(route.params.id as string)
 })
 
 watch(
   () => route.params.id,
   (newId) => {
-    if (newId) {
-      loadTweet(newId as string)
+    if (typeof newId === 'string') {
+      void loadTweet(newId)
     }
   },
 )
 </script>
+
 <style scoped>
 #tweet-detail {
   display: flex;

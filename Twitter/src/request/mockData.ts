@@ -1,166 +1,212 @@
 // Mock data for GitHub Pages static deployment
-const mockTweet1 = {
-  id: '1',
-  author: { id: 'Misaka', name: 'Misaka Mikoto', profile_photo: '/images/img.png' },
-  text: '楽しかった！！！！\nアンヴィル…………',
-  images: ['/images/92162034_p3.png'],
-  publishTime: '2026-06-04T02:00:00',
-  interaction: { reply: 2, transpond: 333, upvote: 444, view: 999, bookmark: 10 },
-  myUpvote: false, myTranspond: false, myBookmark: false,
-}
-const mockTweet2 = {
-  id: '2',
-  author: { id: 'oO0Eve0Oo', name: 'Eve', profile_photo: '/images/img.png' },
-  text: '今日もいい天気ですね〜',
-  images: ['/images/93447255_p0.png'],
-  publishTime: '2026-06-05T10:00:00',
-  interaction: { reply: 55, transpond: 120, upvote: 310, view: 500, bookmark: 20 },
-  myUpvote: false, myTranspond: false, myBookmark: false,
-}
-const mockTweet3 = {
-  id: '3',
-  author: { id: 'akakura1341', name: '赤倉🧸', profile_photo: '/images/img.png' },
-  text: '新しいプロジェクトを始めました！\nVue.js + TypeScript で Twitter クローンを作っています。',
-  images: ['/images/92162034_p3.png', '/images/96919363_p0.jpg', '/images/93447255_p0.png'],
-  publishTime: '2026-06-03T15:00:00',
-  interaction: { reply: 88, transpond: 200, upvote: 500, view: 1200, bookmark: 50 },
-  myUpvote: false, myTranspond: false, myBookmark: false,
-}
-const mockReply1 = {
-  id: '4',
-  author: { id: 'Misaka', name: 'Misaka Mikoto', profile_photo: '/images/img.png' },
-  text: '这条推文太棒了！👍',
-  images: [],
-  publishTime: '2026-06-05T16:27:29',
-  interaction: { reply: 0, transpond: 0, upvote: 0, view: 0, bookmark: 0 },
-  myUpvote: false, myTranspond: false, myBookmark: false,
-}
-const mockReply2 = {
-  id: '5',
-  author: { id: 'oO0Eve0Oo', name: 'Eve', profile_photo: '/images/img.png' },
-  text: 'hhh',
-  images: [],
-  publishTime: '2026-06-05T10:17:17',
-  interaction: { reply: 0, transpond: 0, upvote: 0, view: 0, bookmark: 0 },
-  myUpvote: false, myTranspond: false, myBookmark: false,
-}
-const mockTweet4 = {
-  id: '8',
-  author: { id: 'Misaka', name: 'Misaka Mikoto', profile_photo: '/images/img.png' },
-  text: '多图片测试 - 2张',
-  images: ['/images/92162034_p3.png', '/images/96919363_p0.jpg'],
-  publishTime: '2026-06-14T01:00:00',
-  interaction: { reply: 0, transpond: 0, upvote: 12, view: 100, bookmark: 0 },
-  myUpvote: false, myTranspond: false, myBookmark: false,
-}
-const mockTweet5 = {
-  id: '9',
-  author: { id: 'Misaka', name: 'Misaka Mikoto', profile_photo: '/images/img.png' },
-  text: '多图片测试 - 3张',
-  images: ['/images/92162034_p3.png', '/images/96919363_p0.jpg', '/images/93447255_p0.png'],
-  publishTime: '2026-06-14T01:00:00',
-  interaction: { reply: 0, transpond: 0, upvote: 8, view: 80, bookmark: 0 },
-  myUpvote: false, myTranspond: false, myBookmark: false,
-}
-const mockTweet6 = {
-  id: '10',
-  author: { id: 'Misaka', name: 'Misaka Mikoto', profile_photo: '/images/img.png' },
-  text: '多图片测试 - 4张',
-  images: ['/images/92162034_p3.png', '/images/96919363_p0.jpg', '/images/93447255_p0.png', '/images/64495434_p0.jpg'],
-  publishTime: '2026-06-14T01:00:00',
-  interaction: { reply: 0, transpond: 0, upvote: 5, view: 60, bookmark: 0 },
-  myUpvote: false, myTranspond: false, myBookmark: false,
-}
-const mockTweet7 = {
-  id: '11',
-  author: { id: 'Misaka', name: 'Misaka Mikoto', profile_photo: '/images/img.png' },
-  text: '多图片测试 - 9张',
-  images: ['/images/92162034_p3.png', '/images/96919363_p0.jpg', '/images/93447255_p0.png', '/images/64495434_p0.jpg', '/images/92162034_p3.png', '/images/96919363_p0.jpg', '/images/93447255_p0.png', '/images/64495434_p0.jpg', '/images/92162034_p3.png'],
-  publishTime: '2026-06-14T01:00:00',
-  interaction: { reply: 0, transpond: 0, upvote: 3, view: 40, bookmark: 0 },
-  myUpvote: false, myTranspond: false, myBookmark: false,
-}
-const mockTweet8 = {
-  id: '12',
-  author: { id: 'Misaka', name: 'Misaka Mikoto', profile_photo: '/images/img.png' },
-  text: '多图片测试 - 5张',
-  images: ['/images/92162034_p3.png', '/images/96919363_p0.jpg', '/images/93447255_p0.png', '/images/64495434_p0.jpg', '/images/92162034_p3.png'],
-  publishTime: '2026-06-14T01:00:00',
-  interaction: { reply: 0, transpond: 0, upvote: 2, view: 30, bookmark: 0 },
-  myUpvote: false, myTranspond: false, myBookmark: false,
-}
-const mockTweet9 = {
-  id: '13',
-  author: { id: 'Misaka', name: 'Misaka Mikoto', profile_photo: '/images/img.png' },
-  text: '多图片测试 - 6张',
-  images: ['/images/92162034_p3.png', '/images/96919363_p0.jpg', '/images/93447255_p0.png', '/images/64495434_p0.jpg', '/images/92162034_p3.png', '/images/96919363_p0.jpg'],
-  publishTime: '2026-06-14T01:00:00',
-  interaction: { reply: 0, transpond: 0, upvote: 1, view: 20, bookmark: 0 },
-  myUpvote: false, myTranspond: false, myBookmark: false,
+import type {
+  ActionState,
+  AuthResponse,
+  Me,
+  Trend,
+  TweetItem,
+  TweetMedia,
+  TweetPage,
+  TweetStats,
+} from '@/types'
+
+const avatar = '/images/img.png'
+const defaultStats: TweetStats = {
+  replies: 0,
+  reposts: 0,
+  likes: 0,
+  bookmarks: 0,
+  views: 0,
 }
 
-export const mockResponses = {
-  'GET /tweet': [mockTweet1, mockTweet2, mockTweet3, mockReply1, mockReply2, mockTweet4, mockTweet5, mockTweet6, mockTweet7, mockTweet8, mockTweet9],
-  'GET /tweet/1': { ...mockTweet1, replyTo: null },
-  'GET /tweet/2': { ...mockTweet2, replyTo: null },
-  'GET /tweet/3': { ...mockTweet3, replyTo: null },
-  'GET /tweet/4': { ...mockReply1, replyTo: mockTweet1 },
-  'GET /tweet/5': { ...mockReply2, replyTo: mockTweet1 },
-  'GET /tweet/8': { ...mockTweet4, replyTo: null },
-  'GET /tweet/9': { ...mockTweet5, replyTo: null },
-  'GET /tweet/10': { ...mockTweet6, replyTo: null },
-  'GET /tweet/11': { ...mockTweet7, replyTo: null },
-  'GET /tweet/12': { ...mockTweet8, replyTo: null },
-  'GET /tweet/13': { ...mockTweet9, replyTo: null },
-  'GET /tweet/1/replies': [mockReply1, mockReply2],
-  'GET /tweet/2/replies': [],
-  'GET /tweet/3/replies': [],
-  'POST /tweet/1/reply': { status: 'success', id: '6' },
-  'POST /tweet/1/upvote': { status: 'success', active: true, count: 445 },
-  'POST /tweet/1/transpond': { status: 'success', active: true, count: 334 },
-  'POST /tweet/1/bookmark': { status: 'success', active: true, count: 11 },
-  'POST /tweet/2/upvote': { status: 'success', active: true, count: 311 },
-  'POST /tweet/2/transpond': { status: 'success', active: true, count: 121 },
-  'POST /tweet/2/bookmark': { status: 'success', active: true, count: 21 },
-  'POST /tweet/3/upvote': { status: 'success', active: true, count: 501 },
-  'POST /tweet/3/transpond': { status: 'success', active: true, count: 201 },
-  'POST /tweet/3/bookmark': { status: 'success', active: true, count: 51 },
-  'GET /trends': [
-    { category: '中国香港特别行政区', topic: 'LING NIVEA BRAND FRIEND' },
-    { category: '台湾', topic: '#skywongravee' },
-    { category: '日本', topic: '#アニメ' },
-    { category: '技术', topic: 'Vue.js' },
-    { category: '全球', topic: '#OpenSource' },
-    { category: '科技', topic: '#TypeScript' },
-    { category: '娱乐', topic: '#新番推荐' },
-    { category: '游戏', topic: '#原神' },
-    { category: '音乐', topic: '#JPop' },
-    { category: '体育', topic: '#NBA' },
-    { category: '科技', topic: '#AI绘画' },
-    { category: '全球', topic: '#ClimateAction' },
-    { category: '日本', topic: '#東京リベンジャーズ' },
-    { category: '中国台湾', topic: '#金马奖' },
-    { category: '技术', topic: 'React vs Vue' },
-    { category: '娱乐', topic: '#动漫电影' },
-    { category: '游戏', topic: '#塞尔达传说' },
-    { category: '科技', topic: '#GitHubCopilot' },
-    { category: '全球', topic: '#WorldCup2026' },
-    { category: '日本', topic: '#呪術廻戦' },
+function media(urls: string[]): TweetMedia[] {
+  return urls.map((url) => ({ url, width: null, height: null, alt: null }))
+}
+
+function makeTweet(
+  id: string,
+  authorId: string,
+  authorName: string,
+  text: string,
+  images: string[],
+  createdAt: string,
+  stats: Partial<TweetStats> = {},
+  extra: Partial<TweetItem> = {},
+): TweetItem {
+  return {
+    id,
+    author: { id: authorId, name: authorName, avatarUrl: avatar },
+    text,
+    media: media(images),
+    createdAt,
+    editedAt: null,
+    replyToId: null,
+    replyTo: null,
+    stats: { ...defaultStats, ...stats },
+    viewer: { liked: false, reposted: false, bookmarked: false },
+    ...extra,
+  }
+}
+
+const tweet1 = makeTweet(
+  '1',
+  'Misaka',
+  'Misaka Mikoto',
+  '楽しかった！！！！\nアンヴィル…………',
+  ['/images/92162034_p3.png'],
+  '2026-06-04T02:00:00Z',
+  { replies: 2, reposts: 333, likes: 444, bookmarks: 10, views: 999 },
+)
+const tweet2 = makeTweet(
+  '2',
+  'oO0Eve0Oo',
+  'Eve',
+  '今日もいい天気ですね〜',
+  ['/images/93447255_p0.png'],
+  '2026-06-05T10:00:00Z',
+  { replies: 55, reposts: 120, likes: 310, bookmarks: 20, views: 500 },
+)
+const tweet3 = makeTweet(
+  '3',
+  'akakura1341',
+  '赤倉🧸',
+  '新しいプロジェクトを始めました！\nVue.js + TypeScript で Twitter クローンを作っています。',
+  ['/images/92162034_p3.png', '/images/96919363_p0.jpg', '/images/93447255_p0.png'],
+  '2026-06-03T15:00:00Z',
+  { replies: 88, reposts: 200, likes: 500, bookmarks: 50, views: 1200 },
+)
+const reply1 = makeTweet(
+  '4',
+  'Misaka',
+  'Misaka Mikoto',
+  '这条推文太棒了！👍',
+  [],
+  '2026-06-05T16:27:29Z',
+  { replies: 0, reposts: 0, likes: 0, bookmarks: 0, views: 0 },
+  {
+    replyToId: '1',
+    replyTo: { id: '1', author: tweet1.author, text: tweet1.text, media: tweet1.media },
+  },
+)
+const reply2 = makeTweet(
+  '5',
+  'oO0Eve0Oo',
+  'Eve',
+  'hhh',
+  [],
+  '2026-06-05T10:17:17Z',
+  { replies: 0, reposts: 0, likes: 0, bookmarks: 0, views: 0 },
+  {
+    replyToId: '1',
+    replyTo: { id: '1', author: tweet1.author, text: tweet1.text, media: tweet1.media },
+  },
+)
+const tweet4 = makeTweet(
+  '8',
+  'Misaka',
+  'Misaka Mikoto',
+  '多图片测试 - 2张',
+  ['/images/92162034_p3.png', '/images/96919363_p0.jpg'],
+  '2026-06-14T01:00:00Z',
+  { likes: 12, views: 100 },
+)
+const tweet5 = makeTweet(
+  '9',
+  'Misaka',
+  'Misaka Mikoto',
+  '多图片测试 - 3张',
+  ['/images/92162034_p3.png', '/images/96919363_p0.jpg', '/images/93447255_p0.png'],
+  '2026-06-14T01:00:00Z',
+  { likes: 8, views: 80 },
+)
+const tweet6 = makeTweet(
+  '10',
+  'Misaka',
+  'Misaka Mikoto',
+  '多图片测试 - 4张',
+  [
+    '/images/92162034_p3.png',
+    '/images/96919363_p0.jpg',
+    '/images/93447255_p0.png',
+    '/images/64495434_p0.jpg',
   ],
-  'GET /currentUser': { username: 'Misaka 10177', userId: 'Misaka10177' },
+  '2026-06-14T01:00:00Z',
+  { likes: 5, views: 60 },
+)
+
+const feed: TweetItem[] = [tweet1, tweet2, tweet3, tweet4, tweet5, tweet6]
+const feedPage: TweetPage = { items: feed, nextCursor: null, hasMore: false }
+const repliesPage: TweetPage = { items: [reply1, reply2], nextCursor: null, hasMore: false }
+const emptyPage: TweetPage = { items: [], nextCursor: null, hasMore: false }
+
+function action(
+  id: string,
+  patch: Partial<TweetItem['stats']>,
+  key: 'liked' | 'reposted' | 'bookmarked',
+): ActionState {
+  const source = feed.find((tweet) => tweet.id === id) ?? tweet1
+  const viewer = {
+    ...(source.viewer ?? { liked: false, reposted: false, bookmarked: false }),
+    [key]: true,
+  }
+  return {
+    tweetId: id,
+    stats: { ...source.stats, ...patch },
+    viewer,
+  }
+}
+
+const mockLogin: AuthResponse = {
+  accessToken: 'mock-token-gh-pages',
+  tokenType: 'Bearer',
+  expiresIn: 86400,
+  user: { id: 'Misaka10177', name: 'Misaka 10177', profilePhoto: '/images/img.png' },
+}
+
+const mockMe: Me = { id: 'Misaka10177', name: 'Misaka 10177', avatarUrl: '/images/img.png' }
+
+const trends: Trend[] = [
+  { category: '中国香港特别行政区', topic: 'LING NIVEA BRAND FRIEND' },
+  { category: '台湾', topic: '#skywongravee' },
+  { category: '日本', topic: '#アニメ' },
+  { category: '技术', topic: 'Vue.js' },
+  { category: '全球', topic: '#OpenSource' },
+  { category: '科技', topic: '#TypeScript' },
+  { category: '娱乐', topic: '#新番推荐' },
+  { category: '游戏', topic: '#原神' },
+  { category: '音乐', topic: '#JPop' },
+  { category: '体育', topic: '#NBA' },
+]
+
+export const mockResponses = {
+  'GET /tweets': feedPage,
+  'POST /tweets': tweet1,
+  'GET /tweets/1': tweet1,
+  'GET /tweets/2': tweet2,
+  'GET /tweets/3': tweet3,
+  'GET /tweets/4': reply1,
+  'GET /tweets/5': reply2,
+  'GET /tweets/8': tweet4,
+  'GET /tweets/9': tweet5,
+  'GET /tweets/10': tweet6,
+  'GET /tweets/1/replies': repliesPage,
+  'GET /tweets/2/replies': emptyPage,
+  'GET /tweets/3/replies': emptyPage,
+  'PUT /tweets/1/like': action('1', { likes: 445 }, 'liked'),
+  'DELETE /tweets/1/like': action('1', { likes: 444 }, 'liked'),
+  'PUT /tweets/1/repost': action('1', { reposts: 334 }, 'reposted'),
+  'DELETE /tweets/1/repost': action('1', { reposts: 333 }, 'reposted'),
+  'PUT /tweets/1/bookmark': action('1', { bookmarks: 11 }, 'bookmarked'),
+  'DELETE /tweets/1/bookmark': action('1', { bookmarks: 10 }, 'bookmarked'),
+  'GET /trends': trends,
+  'GET /me': mockMe,
+  'GET /me/bookmarks': { items: [tweet1], nextCursor: null, hasMore: false },
+  'GET /me/likes': { items: [tweet2], nextCursor: null, hasMore: false },
+  'GET /users/Misaka10177/tweets': { items: [tweet1], nextCursor: null, hasMore: false },
+  'GET /users/Misaka10177/replies': { items: [reply1], nextCursor: null, hasMore: false },
   'POST /checkUser': { status: 'success' },
-  'POST /auth/login': {
-    accessToken: 'mock-token-gh-pages',
-    tokenType: 'Bearer',
-    expiresIn: 86400,
-    user: { id: 'Misaka10177', name: 'Misaka 10177', profilePhoto: '/images/img.png' },
-  },
-  'POST /auth/refresh': {
-    accessToken: 'mock-token-gh-pages',
-    tokenType: 'Bearer',
-    expiresIn: 86400,
-    user: { id: 'Misaka10177', name: 'Misaka 10177', profilePhoto: '/images/img.png' },
-  },
+  'POST /auth/login': mockLogin,
+  'POST /auth/refresh': mockLogin,
   'POST /auth/logout': { status: 'success' },
   'GET /auth/sessions': [],
-}
+} satisfies Record<string, unknown>

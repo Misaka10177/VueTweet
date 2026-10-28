@@ -14,10 +14,6 @@
 
 <script setup lang="ts">
 import GLobalNav from '@/view/GlobalNav.vue'
-import { ref } from 'vue'
-import { RouterView, useRoute } from 'vue-router'
-
-const route = useRoute()
 </script>
 
 <style>

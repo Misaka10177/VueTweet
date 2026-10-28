@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 
 import { API_BASE } from '@/config'
-import type { AuthResponse, AuthUser } from '@/types'
+import type { ApiError, AuthResponse, AuthUser } from '@/types'
 
 const isMock = import.meta.env.PROD
 const REFRESH_MARGIN_MS = 5_000
@@ -111,7 +111,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!refreshPromise) {
       refreshPromise = requestRefresh()
         .catch(async (error) => {
-          if (axios.isAxiosError(error) && error.response?.data?.code === 'REFRESH_RETRY') {
+          if (axios.isAxiosError<ApiError>(error) && error.response?.data?.code === 'REFRESH_RETRY') {
             await new Promise((resolve) => setTimeout(resolve, 300))
             return requestRefresh()
           }

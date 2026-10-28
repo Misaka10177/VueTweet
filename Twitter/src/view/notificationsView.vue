@@ -40,8 +40,8 @@ const icon_set = ref(
 
 const tab_list = ref(['全部', '提及'])
 
-function tab_click(tab: string) {
-  // console.log(tab)
+function tab_click() {
+  // reserved
 }
 </script>
 <style scoped>

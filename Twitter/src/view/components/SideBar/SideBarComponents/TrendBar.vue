@@ -13,7 +13,7 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue'
-import { getTrendList } from '@/request/api'
+import { getTrends } from '@/request/api'
 import { useRoute } from 'vue-router'
 import { useTrendStore } from '@/stores/store'
 
@@ -42,7 +42,7 @@ const trendStore = useTrendStore()
 if (trendStore.trends.length) {
   trends.value = trendStore.trends
 } else {
-  getTrendList().then((res: Trend[]) => {
+  getTrends().then((res) => {
     trends.value = res
     trendStore.setTrend(res)
   })

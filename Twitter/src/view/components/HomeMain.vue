@@ -28,8 +28,8 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import type { Tweet } from '@/types'
-import { getTweetList } from '@/request/api'
+import type { TweetItem } from '@/types'
+import { getTweets } from '@/request/api'
 import { useTweetStore } from '@/stores/store'
 import PostComposer from './PostComposer.vue'
 import TabControl from './TabControl.vue'
@@ -42,18 +42,17 @@ const tweet_list = computed(() => tweetStore.tweets)
 const loading = ref(false)
 const loading_more = ref(false)
 const load_error = ref('')
-const page = ref(0)
+const next_cursor = ref<string | null>(null)
 const has_more = ref(false)
 
 async function loadTweets() {
   loading.value = true
   load_error.value = ''
   try {
-    const res = (await getTweetList(0, PAGE_SIZE)) as Tweet[]
-    const items = Array.isArray(res) ? res : []
-    tweetStore.setTweets(items)
-    page.value = 0
-    has_more.value = items.length === PAGE_SIZE
+    const page = await getTweets(null, PAGE_SIZE)
+    tweetStore.setFeed(page)
+    next_cursor.value = page.nextCursor
+    has_more.value = page.hasMore
   } catch {
     load_error.value = '帖子加载失败，请确认后端已启动'
   } finally {
@@ -66,11 +65,10 @@ async function loadMore() {
   loading_more.value = true
   load_error.value = ''
   try {
-    const res = (await getTweetList(page.value + 1, PAGE_SIZE)) as Tweet[]
-    const items = Array.isArray(res) ? res : []
-    tweetStore.appendTweets(items)
-    page.value += 1
-    has_more.value = items.length === PAGE_SIZE
+    const page = await getTweets(next_cursor.value, PAGE_SIZE)
+    tweetStore.appendFeed(page)
+    next_cursor.value = page.nextCursor
+    has_more.value = page.hasMore
   } catch {
     load_error.value = '加载更多失败，请稍后重试'
   } finally {
@@ -78,7 +76,7 @@ async function loadMore() {
   }
 }
 
-function onPosted(tweet: Tweet) {
+function onPosted(tweet: TweetItem) {
   tweetStore.prependTweet(tweet)
   load_error.value = ''
 }

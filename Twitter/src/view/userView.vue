@@ -49,7 +49,8 @@
           <TabControl :tab_list="tab_list" @tab-click="tab_click"></TabControl>
         </div>
         <div class="tweet_list">
-          <TweetShow v-for="(tweet, index) in tweets" :key="index" :tweet="tweet"></TweetShow>
+          <div v-if="loading" class="loading">加载中…</div>
+          <TweetShow v-for="tweet in tweets" :key="tweet.id" :tweet="tweet"></TweetShow>
         </div>
         <div class="recommend-section">
           <RecommendFollowing></RecommendFollowing>
@@ -67,15 +68,16 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import type { Me, TweetItem } from '@/types'
+import { getLikes, getMe, getUserReplies, getUserTweets } from '@/request/api'
+import { useTweetStore } from '@/stores/store'
 import TabControl from './components/TabControl.vue'
 import TweetShow from './components/TweetShow.vue'
 import SearchBar from './components/SideBar/SideBarComponents/SearchBar.vue'
 import SubscribePremium from './components/SideBar/SideBarComponents/SubscribePremium.vue'
 import RecommendFollowing from './components/SideBar/SideBarComponents/RecommendFollowing.vue'
 import NavigationBar from './components/SideBar/SideBarComponents/NavigationBar.vue'
-import { getuserInfo } from '@/request/api.js'
-import type { Tweet } from '@/types'
 
 const base = import.meta.env.BASE_URL
 const icon_back = ref(
@@ -85,26 +87,56 @@ const icon_calendar = ref(
   'M7 4V3h2v1h6V3h2v1h1.5C19.88 4 21 5.12 21 6.5v12c0 1.38-1.12 2.5-2.5 2.5h-13C4.12 21 3 19.88 3 18.5v-12C3 5.12 4.12 4 5.5 4H7zm0 2H5.5c-.28 0-.5.22-.5.5v12c0 .28.22.5.5.5h13c.28 0 .5-.22.5-.5v-12c0-.28-.22-.5-.5-.5H17v1h-2V6H9v1H7V6zm0 5V9h2v2H7zm4 0V9h2v2h-2zm4 0V9h2v2h-2z',
 )
 
+const me = ref<Me | null>(null)
 const userName = ref('')
 const userId = ref('')
-getuserInfo().then((res) => {
-  userName.value = res.username
-  userId.value = res.userId
-})
-
 const bio = ref('')
 const joinDate = ref('2024年1月加入')
 const following = ref(0)
 const followers = ref(0)
 const postCount = ref(0)
-
 const tab_list = ref(['帖子', '回复', '亮点', '文章', '媒体', '喜欢'])
+const tweets = ref<TweetItem[]>([])
+const loading = ref(false)
+const tweetStore = useTweetStore()
 
-const tweets = ref<Tweet[]>([])
+async function loadTab(tab: string) {
+  if (!me.value) return
+  loading.value = true
+  try {
+    if (tab === '喜欢') {
+      const page = await getLikes()
+      tweets.value = page.items
+    } else if (tab === '回复') {
+      const page = await getUserReplies(me.value.id)
+      tweets.value = page.items
+    } else if (tab === '媒体') {
+      const page = await getUserTweets(me.value.id, null, 50)
+      tweets.value = page.items.filter((tweet) => tweet.media.length > 0)
+    } else {
+      const page = await getUserTweets(me.value.id)
+      tweets.value = page.items
+    }
+    tweets.value.forEach((item) => tweetStore.putTweet(item))
+    if (tab === '帖子') postCount.value = tweets.value.length
+  } catch {
+    // Keep the current tab data.
+  } finally {
+    loading.value = false
+  }
+}
 
 function tab_click(tab: string) {
-  // console.log(tab)
+  void loadTab(tab)
 }
+
+onMounted(async () => {
+  const profile = await getMe()
+  me.value = profile
+  userName.value = profile.name
+  userId.value = profile.id
+  await loadTab('帖子')
+})
 </script>
 <style scoped>
 #user {

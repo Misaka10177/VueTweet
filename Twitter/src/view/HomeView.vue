@@ -17,8 +17,6 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue'
-
 import HomeMain from './components/HomeMain.vue'
 import SearchBar from './components/SideBar/SideBarComponents/SearchBar.vue'
 import SubscribePremium from './components/SideBar/SideBarComponents/SubscribePremium.vue'

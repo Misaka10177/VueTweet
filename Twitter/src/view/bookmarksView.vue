@@ -23,7 +23,10 @@
             </div>
           </div>
           <div class="tweets" v-else>
-            <TweetShow v-for="(tweet, index) in bookmarks" :key="index" :tweet="tweet"></TweetShow>
+            <TweetShow v-for="tweet in bookmarks" :key="tweet.id" :tweet="tweet"></TweetShow>
+            <button v-if="hasMore" type="button" class="load_more" @click="load(false)">
+              加载更多
+            </button>
           </div>
         </div>
       </main>
@@ -39,25 +42,44 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
+import type { TweetItem } from '@/types'
+import { getBookmarks } from '@/request/api'
+import { useTweetStore } from '@/stores/store'
 import TweetShow from './components/TweetShow.vue'
 import SearchBar from './components/SideBar/SideBarComponents/SearchBar.vue'
 import SubscribePremium from './components/SideBar/SideBarComponents/SubscribePremium.vue'
 import RecommendFollowing from './components/SideBar/SideBarComponents/RecommendFollowing.vue'
 import NavigationBar from './components/SideBar/SideBarComponents/NavigationBar.vue'
-import type { Tweet } from '@/types'
-import { getTweet } from '@/request/api.js'
 
 const icon_back = ref(
   'M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z',
 )
 
-const bookmarks = ref<Tweet[]>([])
+const bookmarks = ref<TweetItem[]>([])
+const cursor = ref<string | null>(null)
+const hasMore = ref(false)
+const loading = ref(false)
+const tweetStore = useTweetStore()
+
+async function load(reset: boolean) {
+  if (loading.value) return
+  loading.value = true
+  try {
+    const page = await getBookmarks(reset ? null : cursor.value)
+    page.items.forEach((item) => tweetStore.putTweet(item))
+    bookmarks.value = reset ? page.items : [...bookmarks.value, ...page.items]
+    cursor.value = page.nextCursor
+    hasMore.value = page.hasMore
+  } catch {
+    // Keep the current list.
+  } finally {
+    loading.value = false
+  }
+}
 
 onMounted(() => {
-  getTweet('1').then((res: Tweet) => {
-    bookmarks.value = [res]
-  })
+  void load(true)
 })
 </script>
 <style scoped>

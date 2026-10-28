@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [claude_code]
+    branches: [main]
 
 permissions:
   contents: read
@@ -27,6 +27,8 @@ jobs:
           cache: npm
           cache-dependency-path: Twitter/package-lock.json
       - run: npm ci
+      - run: npm run type-check
+      - run: npm run lint
       - run: npm run build-only
       - uses: actions/upload-pages-artifact@v3
         with:

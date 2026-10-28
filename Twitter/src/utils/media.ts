@@ -14,7 +14,7 @@ function apiOrigin() {
  * - /images/... 前端 public 资源，使用 Vite base
  * - 完整 URL / data URL 直接返回
  */
-export function mediaUrl(path?: string) {
+export function mediaUrl(path?: string | null) {
   if (!path) return ''
   if (/^(https?:)?\/\//i.test(path) || path.startsWith('data:')) return path
   if (path.startsWith('/uploads/')) return `${apiOrigin()}${path}`

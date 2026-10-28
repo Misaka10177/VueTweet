@@ -1,16 +1,6 @@
 <template>
   <div id="tweet" :class="{ 'is-quoted': isQuoted }">
-    <div class="repost">
-      <!-- <span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <g>
-            <path :d="repost_tweet_icon"></path>
-          </g>
-        </svg>
-      </span>
-      <span>Misaka 10177</span>
-      <span>已转帖</span> -->
-    </div>
+    <div class="repost"></div>
     <div class="box" @click="goDetail">
       <div class="avatar-col">
         <div class="profile_photo">
@@ -21,8 +11,8 @@
       <div class="container">
         <div class="auther_name">
           <div>
-            <span class="name">{{ tweet.author?.name }}</span>
-            <span class="id">@{{ tweet.author?.id }}</span>
+            <span class="name">{{ tweet.author.name }}</span>
+            <span class="id">@{{ tweet.author.id }}</span>
             <span class="dot">·</span>
             <span class="time">{{ displayTime }}</span>
           </div>
@@ -36,35 +26,36 @@
             </div>
           </div>
         </div>
-        <div class="tweet_text">
-          {{ tweet.text }}
-        </div>
-        <!-- <div class="tweet_tag">#お隣の天使様</div> -->
+        <div class="tweet_text">{{ tweet.text }}</div>
         <div
           class="tweet_images"
-          v-if="tweet.images && tweet.images.length > 0"
+          v-if="tweet.media.length > 0"
           :class="tweet_images_class"
         >
           <div>
-            <div class="img" v-if="tweet.images.length === 1">
+            <div class="img" v-if="tweet.media.length === 1">
               <div>
-                <img @load="tweet_images_onload" :src="mediaUrl(tweet.images[0])" alt="" />
+                <img
+                  @load="tweet_images_onload"
+                  :src="tweet.media[0] ? mediaUrl(tweet.media[0].url) : ''"
+                  :alt="tweet.media[0]?.alt ?? ''"
+                />
               </div>
             </div>
-            <div v-else class="img images_more" v-for="(img, index) in tweet.images" :key="index">
+            <div v-else class="img images_more" v-for="(media, index) in tweet.media" :key="index">
               <div>
-                <img :src="mediaUrl(img)" alt="" />
+                <img :src="mediaUrl(media.url)" :alt="media.alt ?? ''" />
               </div>
             </div>
           </div>
         </div>
-        <div class="tweet_interaction">
+        <div class="tweet_interaction" v-if="!readonly">
           <div>
             <div
-              v-for="(item, index) in page_tweet_interaction_icon"
-              :key="index"
-              @click.stop="toggle(item.name)"
-              :class="['active', { activated: activeStates[item.name] }]"
+              v-for="item in primaryActions"
+              :key="item.name"
+              @click.stop="onAction(item.name)"
+              :class="['active', { activated: isActive(item.name) }]"
             >
               <span>
                 <span class="icon">
@@ -72,31 +63,27 @@
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <g>
                       <path
-                        :d="
-                          activeStates[item.name] && item.activePath ? item.activePath : item.path
-                        "
+                        :d="isActive(item.name) && item.activePath ? item.activePath : item.path"
                       ></path>
                     </g>
                   </svg>
                 </span>
-                <span v-if="tweet.interaction[item.name] > 0">{{
-                  tweet.interaction[item.name]
-                }}</span>
+                <span v-if="statValue(item.stat) > 0">{{ statValue(item.stat) }}</span>
               </span>
             </div>
           </div>
           <div>
             <div
-              v-for="(item, index) in page_tweet_interaction_icon_1"
-              :key="index"
-              @click.stop="toggle(item.name)"
-              :class="['active', { activated: activeStates[item.name] }]"
+              v-for="item in secondaryActions"
+              :key="item.name"
+              @click.stop="onAction(item.name)"
+              :class="['active', { activated: isActive(item.name) }]"
             >
               <span class="icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <g>
                     <path
-                      :d="activeStates[item.name] && item.activePath ? item.activePath : item.path"
+                      :d="isActive(item.name) && item.activePath ? item.activePath : item.path"
                     ></path>
                   </g>
                 </svg>
@@ -109,65 +96,124 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import type { Tweet } from '@/types'
+import type { Action, ActionState, TweetItem, TweetStats } from '@/types'
+import { bookmark, like, repost, unbookmark, unlike, unrepost } from '@/request/api'
+import { useTweetStore } from '@/stores/store'
 import { mediaUrl } from '@/utils/media'
-import { toggleUpvote, toggleTranspond, toggleBookmark } from '@/request/api'
+
+type TweetAction = 'reply' | 'repost' | 'like' | 'view' | 'bookmark'
+type IconItem = {
+  name: TweetAction
+  stat: keyof TweetStats
+  path: string
+  activePath?: string
+}
 
 const base = import.meta.env.BASE_URL
-const prop = withDefaults(defineProps<{ tweet: Tweet; isQuoted?: boolean }>(), { isQuoted: false })
-const tweet = ref<Tweet>(prop.tweet)
+const props = withDefaults(
+  defineProps<{ tweet: TweetItem; isQuoted?: boolean; readonly?: boolean }>(),
+  { isQuoted: false, readonly: false },
+)
 const router = useRouter()
+const store = useTweetStore()
+const tweet = computed(() => store.getTweet(props.tweet.id) ?? props.tweet)
+const pending = ref<Action | null>(null)
 
 const avatarUrl = computed(
-  () => mediaUrl(tweet.value.author?.profile_photo) || `${base}images/img.png`,
+  () => mediaUrl(tweet.value.author.avatarUrl) || `${base}images/img.png`,
 )
-
-const activeStates = ref<Record<string, boolean>>({
-  upvote: !!tweet.value.myUpvote,
-  transpond: !!tweet.value.myTranspond,
-  bookmark: !!tweet.value.myBookmark,
-  Retweet: !!tweet.value.myTranspond,
-})
 
 function goDetail() {
   router.push('/tweet/' + tweet.value.id)
 }
 
-const toggleActions: Record<string, (id: string) => Promise<any>> = {
-  upvote: toggleUpvote,
-  transpond: toggleTranspond,
-  Retweet: toggleTranspond,
-  bookmark: toggleBookmark,
+function isActive(name: TweetAction) {
+  const viewer = tweet.value.viewer
+  if (!viewer) return false
+  if (name === 'like') return viewer.liked
+  if (name === 'repost') return viewer.reposted
+  if (name === 'bookmark') return viewer.bookmarked
+  return false
 }
 
-const myKeyMap: Record<string, 'myUpvote' | 'myTranspond' | 'myBookmark'> = {
-  upvote: 'myUpvote',
-  transpond: 'myTranspond',
-  Retweet: 'myTranspond',
-  bookmark: 'myBookmark',
+function statValue(stat: keyof TweetStats) {
+  return tweet.value.stats[stat]
 }
 
-function toggle(name: string) {
-  const apiName = name === 'Retweet' ? 'transpond' : name
-  const apiFn = toggleActions[name]
-  if (!apiFn) return
-  apiFn(tweet.value.id).then((res: any) => {
-    if (res.status === 'success') {
-      activeStates.value[name] = res.active
-      activeStates.value[apiName] = res.active
-      tweet.value.interaction[apiName as keyof typeof tweet.value.interaction] = res.count
-      const myKey = myKeyMap[name]
-      if (myKey) (tweet.value as any)[myKey] = res.active
-    }
-  })
+const actions: Record<Action, { on: (id: string) => Promise<ActionState>; off: (id: string) => Promise<ActionState> }> = {
+  like: { on: like, off: unlike },
+  repost: { on: repost, off: unrepost },
+  bookmark: { on: bookmark, off: unbookmark },
 }
+
+async function toggle(action: Action) {
+  if (pending.value) return
+  pending.value = action
+  try {
+    const state = isActive(action)
+      ? await actions[action].off(tweet.value.id)
+      : await actions[action].on(tweet.value.id)
+    store.applyAction(state)
+  } catch {
+    // Keep the previous state; the server is the source of truth.
+  } finally {
+    pending.value = null
+  }
+}
+
+function onAction(name: TweetAction) {
+  if (name === 'reply') {
+    goDetail()
+    return
+  }
+  if (name === 'view') return
+  void toggle(name)
+}
+
+const tweet_more_icon = ref(
+  'M3 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm7 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z',
+)
+
+const primaryActions: IconItem[] = [
+  {
+    name: 'reply',
+    stat: 'replies',
+    path: 'M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z',
+  },
+  {
+    name: 'repost',
+    stat: 'reposts',
+    path: 'M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z',
+  },
+  {
+    name: 'like',
+    stat: 'likes',
+    path: 'M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z',
+    activePath:
+      'M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z',
+  },
+  {
+    name: 'view',
+    stat: 'views',
+    path: 'M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z',
+  },
+]
+
+const secondaryActions: IconItem[] = [
+  {
+    name: 'bookmark',
+    stat: 'bookmarks',
+    path: 'M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z',
+    activePath: 'M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5z',
+  },
+]
 
 const displayTime = computed(() => {
-  if (!tweet.value.publishTime) return ''
+  if (!tweet.value.createdAt) return ''
   const now = new Date()
-  const pub = new Date(tweet.value.publishTime)
+  const pub = new Date(tweet.value.createdAt)
   const diff = now.getTime() - pub.getTime()
   const seconds = Math.floor(diff / 1000)
   const minutes = Math.floor(seconds / 60)
@@ -182,59 +228,16 @@ const displayTime = computed(() => {
   return `${pub.getFullYear()}年${pub.getMonth() + 1}月${pub.getDate()}日`
 })
 
-type interactionType = 'reply' | 'transpond' | 'upvote' | 'view'
-const page_tweet_interaction_icon = ref<
-  { name: interactionType; path: string; activePath?: string }[]
->([
-  {
-    name: 'reply',
-    path: 'M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z',
-  },
-  {
-    name: 'transpond',
-    path: 'M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z',
-  },
-  {
-    name: 'upvote',
-    path: 'M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z',
-    activePath:
-      'M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z',
-  },
-  {
-    name: 'view',
-    path: 'M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z',
-  },
-])
-
-const page_tweet_interaction_icon_1 = ref<{ name: string; path: string; activePath?: string }[]>([
-  {
-    name: 'bookmark',
-    path: 'M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z',
-    activePath: 'M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5z',
-  },
-  {
-    name: 'Retweet',
-    path: 'M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z',
-  },
-])
-
-const tweet_more_icon = ref(
-  'M3 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm7 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z',
-)
-
-const repost_tweet_icon = ref(
-  'M4.75 3.79l4.603 4.3-1.706 1.82L6 8.38v7.37c0 .97.784 1.75 1.75 1.75H13V20H7.75c-2.347 0-4.25-1.9-4.25-4.25V8.38L1.853 9.91.147 8.09l4.603-4.3zm11.5 2.71H11V4h5.25c2.347 0 4.25 1.9 4.25 4.25v7.37l1.647-1.53 1.706 1.82-4.603 4.3-4.603-4.3 1.706-1.82L18 15.62V8.25c0-.97-.784-1.75-1.75-1.75z',
-)
-
 const tweet_image_landscape = ref(false)
 const tweet_images_class = computed(() => ({
   landscape: tweet_image_landscape.value === true,
-  images_2: tweet.value.images.length === 2,
-  images_3: tweet.value.images.length === 3,
-  images_4: tweet.value.images.length === 4,
-  images_6: tweet.value.images.length >= 5 && tweet.value.images.length <= 6,
-  images_9: tweet.value.images.length >= 7 && tweet.value.images.length <= 9,
+  images_2: tweet.value.media.length === 2,
+  images_3: tweet.value.media.length === 3,
+  images_4: tweet.value.media.length === 4,
+  images_6: tweet.value.media.length >= 5 && tweet.value.media.length <= 6,
+  images_9: tweet.value.media.length >= 7 && tweet.value.media.length <= 9,
 }))
+
 function tweet_images_onload(e: Event) {
   const img = e.target as HTMLImageElement
   if (img.naturalWidth > img.naturalHeight) {
@@ -242,6 +245,7 @@ function tweet_images_onload(e: Event) {
   }
 }
 </script>
+
 <style scope>
 #tweet {
   padding: 0 16px;

@@ -85,7 +85,7 @@ import router from '@/router'
 import { useAuthStore } from '@/stores/auth'
 import { useTweetStore } from '@/stores/store'
 import { mediaUrl } from '@/utils/media'
-import type { Tweet } from '@/types'
+import type { TweetItem } from '@/types'
 import PostComposer from './components/PostComposer.vue'
 
 const base = import.meta.env.BASE_URL
@@ -165,7 +165,7 @@ const profilePhoto = computed(
 const showComposer = ref(false)
 const tweetStore = useTweetStore()
 
-function onPosted(tweet: Tweet) {
+function onPosted(tweet: TweetItem) {
   tweetStore.prependTweet(tweet)
   showComposer.value = false
   if (router.currentRoute.value.path !== '/') {

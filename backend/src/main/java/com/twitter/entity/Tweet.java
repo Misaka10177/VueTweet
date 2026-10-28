@@ -17,29 +17,32 @@ public class Tweet {
     @Column(name = "reply_to_id")
     private Long replyToId;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(nullable = false, length = 1000)
     private String text;
-
-    @Column(columnDefinition = "TEXT")
-    private String images;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
-    private int reply;
+    @Column(name = "edited_at")
+    private LocalDateTime editedAt;
 
-    @Column(nullable = false)
-    private int transpond;
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
-    @Column(nullable = false)
-    private int upvote;
+    @Column(name = "reply_count", nullable = false)
+    private long replyCount;
+
+    @Column(name = "repost_count", nullable = false)
+    private long repostCount;
+
+    @Column(name = "like_count", nullable = false)
+    private long likeCount;
+
+    @Column(name = "bookmark_count", nullable = false)
+    private long bookmarkCount;
 
     @Column(name = "view_count", nullable = false)
-    private int viewCount;
-
-    @Column(nullable = false)
-    private int bookmark;
+    private long viewCount;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -49,18 +52,20 @@ public class Tweet {
     public void setReplyToId(Long replyToId) { this.replyToId = replyToId; }
     public String getText() { return text; }
     public void setText(String text) { this.text = text; }
-    public String getImages() { return images; }
-    public void setImages(String images) { this.images = images; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    public int getReply() { return reply; }
-    public void setReply(int reply) { this.reply = reply; }
-    public int getTranspond() { return transpond; }
-    public void setTranspond(int transpond) { this.transpond = transpond; }
-    public int getUpvote() { return upvote; }
-    public void setUpvote(int upvote) { this.upvote = upvote; }
-    public int getViewCount() { return viewCount; }
-    public void setViewCount(int viewCount) { this.viewCount = viewCount; }
-    public int getBookmark() { return bookmark; }
-    public void setBookmark(int bookmark) { this.bookmark = bookmark; }
+    public LocalDateTime getEditedAt() { return editedAt; }
+    public void setEditedAt(LocalDateTime editedAt) { this.editedAt = editedAt; }
+    public LocalDateTime getDeletedAt() { return deletedAt; }
+    public void setDeletedAt(LocalDateTime deletedAt) { this.deletedAt = deletedAt; }
+    public long getReplyCount() { return replyCount; }
+    public void setReplyCount(long replyCount) { this.replyCount = replyCount; }
+    public long getRepostCount() { return repostCount; }
+    public void setRepostCount(long repostCount) { this.repostCount = repostCount; }
+    public long getLikeCount() { return likeCount; }
+    public void setLikeCount(long likeCount) { this.likeCount = likeCount; }
+    public long getBookmarkCount() { return bookmarkCount; }
+    public void setBookmarkCount(long bookmarkCount) { this.bookmarkCount = bookmarkCount; }
+    public long getViewCount() { return viewCount; }
+    public void setViewCount(long viewCount) { this.viewCount = viewCount; }
 }

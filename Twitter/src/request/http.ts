@@ -1,8 +1,10 @@
 // axios 实例与请求封装
 import axios from 'axios'
+import type { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import router from '@/router'
 import { API_BASE } from '@/config'
 import { useAuthStore } from '@/stores/auth'
+import type { ApiError } from '@/types'
 
 const isGitHubPages = import.meta.env.PROD
 
@@ -13,6 +15,8 @@ axios.defaults.withCredentials = true
 
 // Mock data for GitHub Pages static deployment
 import { mockResponses } from './mockData'
+
+type RetryConfig = InternalAxiosRequestConfig & { _retry?: boolean }
 
 function getMockKey(method: string, url: string) {
   return `${method.toUpperCase()} ${url}`
@@ -52,19 +56,19 @@ axios.interceptors.request.use((cfg) => {
   return cfg
 })
 
-export function get<T = any>(url: string, params?: object) {
+export function get<T>(url: string, params?: object): Promise<T> {
   return axios.get<T>(url, { params }).then((res) => res.data)
 }
 
-export function put<T = any>(url: string, data?: unknown) {
+export function put<T>(url: string, data?: unknown): Promise<T> {
   return axios.put<T>(url, data).then((res) => res.data)
 }
 
-export function post<T = any>(url: string, data?: unknown) {
+export function post<T>(url: string, data?: unknown): Promise<T> {
   return axios.post<T>(url, data).then((res) => res.data)
 }
 
-export function del<T = any>(url: string) {
+export function del<T>(url: string): Promise<T> {
   return axios.delete<T>(url).then((res) => res.data)
 }
 
@@ -72,14 +76,21 @@ export function del<T = any>(url: string) {
  * multipart/form-data 专用请求。
  * 不手动设置 Content-Type，交给浏览器/axios 生成带 boundary 的头。
  */
-export function postForm<T>(url: string, data: FormData) {
+export function postForm<T>(url: string, data: FormData): Promise<T> {
   return axios.post<T>(url, data).then((res) => res.data)
+}
+
+export function toApiError(err: unknown): ApiError | null {
+  if (axios.isAxiosError<ApiError>(err)) {
+    return err.response?.data ?? null
+  }
+  return null
 }
 
 axios.interceptors.response.use(
   (res) => res,
-  async (err) => {
-    const original = err.config || {}
+  async (err: AxiosError) => {
+    const original = (err.config ?? {}) as RetryConfig
     const url: string = original.url || ''
 
     if (err.response?.status !== 401 || original._retry) {

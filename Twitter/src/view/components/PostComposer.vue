@@ -74,9 +74,9 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { createTweet } from '@/request/api'
-import type { Tweet } from '@/types'
+import type { TweetItem } from '@/types'
 
-const emit = defineEmits<{ (e: 'posted', tweet: Tweet): void }>()
+const emit = defineEmits<{ (e: 'posted', tweet: TweetItem): void }>()
 
 const MAX_TEXT = 280
 const MAX_IMAGES = 4
@@ -91,7 +91,7 @@ const error = ref('')
 const fileInput = ref<HTMLInputElement | null>(null)
 const textarea = ref<HTMLTextAreaElement | null>(null)
 
-const remaining = computed(() => MAX_TEXT - text.value.length)
+const remaining = computed(() => MAX_TEXT - Array.from(text.value).length)
 const canSubmit = computed(
   () =>
     !submitting.value &&
